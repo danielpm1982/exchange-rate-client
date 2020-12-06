@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Exchange Rate Client</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='index.css'>
+</head>
+<body>
+    <h1>Exchange Rate Client App</h1>
+    <!-- <input type="text" id="currencyCodeTextInput" placeholder="currency code" /> -->
+    <select id="currencyCodeSelect">
+        <option value=_ disabled selected>Select Currency</option>
+    </select>
+    <br>
+    <textarea id="resultTextArea" placeholder="Exchange Rates..." readonly></textarea>
+    <br>
+    <button id="getRatesButton">Get Rates</button>
+    <button id="clearButton">Clear</button>
+    <footer>
+        <span class="leftSpan">Source:</span><span class="rightSpan"><a target="_blank" href="https://www.exchangerate-api.com">Currency Conversion by ExchangeRate-API.com</a></span>
+    </footer>
+    <script>var exports = {};</script>
+    <script src='index.js'></script>
+</body>
+</html>

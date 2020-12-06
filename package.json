@@ -1,0 +1,42 @@
+{
+  "name": "exchange-rate-client",
+  "version": "1.0.0",
+  "description": "This is a sample app created with Node.js, npm, JavaScript ES6+, TypeScript and Electron.js.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=app/icon/iconMac.icns --prune=true --out=release-builds",
+    "package-win": "electron-packager . exchange-rate-client-v1.0.0-app --overwrite --asar=true --platform=win32 --arch=ia32 --icon=app/icon/iconWin.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Exchange Rate Client App v1.0.0",
+    "package-linux": "electron-packager . exchange-rate-client-v1.0.0-app --overwrite --asar=true --platform=linux --arch=x64 --icon=app/icon/iconLinux.png --prune=true --out=release-builds",
+    "tsc-initiate-project": "./node_modules/.bin/tsc --init",
+    "tsc-compilate-project": "./node_modules/.bin/tsc ./*.ts ./app/*.ts",
+    "tsc-compilate-project-win": "tsc index.ts app\\index.ts app\\ConversionRatesInterface.ts app\\conversionRatesKeys.ts",
+    "tsc-uncompilate-project": "rm ./*.js ./app/*.js",
+    "tsc-uncompilate-project-win": "rm index.ts app\\index.ts app\\ConversionRatesInterface.ts app\\conversionRatesKeys.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielpm1982/exchange-rate-client.git"
+  },
+  "keywords": [
+    "exchange",
+    "rate",
+    "danielpm1982"
+  ],
+  "author": "Daniel Pinheiro",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danielpm1982/exchange-rate-client/issues"
+  },
+  "homepage": "https://github.com/danielpm1982/exchange-rate-client#readme",
+  "devDependencies": {
+    "electron": "^11.0.3",
+    "electron-packager": "^15.2.0",
+    "nodemon": "^2.0.6",
+    "typescript": "^4.1.2"
+  },
+  "dependencies": {
+    "axios": "^0.21.0"
+  }
+}
