@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "electron --inspect-brk=5858 .",
+    "debug-breakpoint": "electron --inspect-brk=5858 .",
     "start": "electron .",
     "package-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=app/icon/iconMac.icns --prune=true --out=release-builds",
     "package-win": "electron-packager . exchange-rate-client-v1.0.0-app --overwrite --asar=true --platform=win32 --arch=ia32 --icon=app/icon/iconWin.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"Exchange Rate Client App v1.0.0",
