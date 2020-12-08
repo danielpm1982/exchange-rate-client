@@ -31,6 +31,7 @@ app.on('ready', function() {
     height: 800,
     resizable: true,
     alwaysOnTop: false,
+    show: false,
     webPreferences: {
       nodeIntegration: true
     }
@@ -38,6 +39,9 @@ app.on('ready', function() {
   
   // and load the index.html of the app. 
   mainWindow.loadFile("app/index.html"); 
+  
+  // show window only when all content is loaded.
+  mainWindow.once("ready-to-show", mainWindow.show);
   
   // Open the DevTools. 
   // mainWindow.webContents.openDevTools();
