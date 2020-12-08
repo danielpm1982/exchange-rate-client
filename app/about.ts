@@ -1,0 +1,6 @@
+import { ipcRenderer } from 'electron'
+const closeElement = document.getElementById('close')!
+closeElement.addEventListener("click", () => {
+    ipcRenderer.send("close-about-window")
+})
+closeElement.setAttribute('title', 'click to close')
