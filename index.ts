@@ -50,7 +50,7 @@ app.on('ready', function() {
     modal: true,
     resizable: false,
     frame: false,
-    movable: false,
+    movable: true,
     alwaysOnTop: true,
     show: false,
     webPreferences: {
