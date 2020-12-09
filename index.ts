@@ -32,16 +32,20 @@ app.on('window-all-closed', function()
 app.on('ready', function() { 
   // Create the browser main window
   mainWindow = new BrowserWindow({
-    width: 1200,
+    width: 1143,
     height: 800,
+    minWidth: 690,
+    minHeight: 483,
+    maxWidth: 1143,
+    maxHeight: 800,
     resizable: true,
     alwaysOnTop: false,
     show: false,
     webPreferences: {
       nodeIntegration: true
     }
-  }); 
-  
+  });
+
   // Create the browser about modal window
   aboutModalWindow = new BrowserWindow({
     width: 650,
@@ -71,13 +75,16 @@ app.on('ready', function() {
   aboutModalWindow.once("ready-to-show", function(){
     setTimeout(() => {
       aboutModalWindow.show();
+      mainWindow.setOpacity(0.3);
       // close aboutModalWindow when a click event happens at the renderer. 
       ipcMain.on('close-about-window', (e: Event) => {
         aboutModalWindow.close();
+        mainWindow.setOpacity(1);
       })
       setTimeout(() => {
         if(aboutModalWindow)
           aboutModalWindow.close();
+          mainWindow.setOpacity(1);
       }, 10000);
     }, 1000);
   });
