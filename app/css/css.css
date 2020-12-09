@@ -72,10 +72,11 @@ div.centralImageAbout img#close{
     -webkit-app-region: none;
 }
 div.centralTextAbout{
-    font-size: 1em;
+    font-size: 1.1em;
+    margin-top: 1em;
 }
 footer{
-    font-size: 1em;
-    margin-bottom: 2em;
-    margin-top: 2em;
+    font-size: 1.1em;
+    margin-bottom: 0em;
+    margin-top: 2.5em;
 }
