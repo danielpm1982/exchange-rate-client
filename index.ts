@@ -1,4 +1,5 @@
 const electron = require('electron'); 
+const windowStateKeeper = require('electron-window-state')
 
 // Module to control application life. 
 const app = electron.app; 
@@ -30,10 +31,27 @@ app.on('window-all-closed', function()
 // This method will be called when Electron has finished 
 // initialization and is ready to create browser windows. 
 app.on('ready', function() { 
-  // Create the browser main window
+  
+  // Create an object, through the windowStateKeeper() function, and set 
+  // the default values of width and height that, by default, the managed 
+  // window should have set initially, if no other stored values are 
+  // available at the winState object
+  let winState = windowStateKeeper({
+    defaultWidth: 1143,
+    deafultHeight: 800,
+  })
+  
+  // Create the browser main window based on stored props values 
+  // (width, height, x and y) from the winState object created above.
+  // If no custom values exist, saved from the last app user usage,
+  // use the default winState values.
   mainWindow = new BrowserWindow({
-    width: 1143,
-    height: 800,
+    // width: 1143,
+    // height: 800,
+    width: winState.width,
+    height: winState.height,
+    x: winState.x,
+    y: winState.y,
     minWidth: 690,
     minHeight: 483,
     // maxWidth and maxHeight limit maximization of window on Windows, 
@@ -47,6 +65,11 @@ app.on('ready', function() {
       nodeIntegration: true
     }
   });
+
+  // sets the window whose position and move events will be listened to
+  // by the winState object that will manage the store and retrieval
+  // of those values on the next app use
+  winState.manage(mainWindow)
 
   // Create the browser about modal window
   aboutModalWindow = new BrowserWindow({
