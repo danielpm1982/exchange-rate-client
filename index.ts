@@ -13,9 +13,9 @@ const ipcMain =  electron.ipcMain;
 // Keep a global reference of the window object,  
 // if you don't, the window will be closed automatically 
 // when the JavaScript object is garbage collected. 
-let mainWindow:any = null; 
+let mainWindow: Electron.BrowserWindow | null; 
 
-let aboutModalWindow:any = null;
+let aboutModalWindow: Electron.BrowserWindow | null;
 
 // Quit when all windows are closed. 
 app.on('window-all-closed', function() 
@@ -99,17 +99,17 @@ app.on('ready', function() {
   // show window only when all content is loaded.
   aboutModalWindow.once("ready-to-show", function(){
     setTimeout(() => {
-      aboutModalWindow.show();
-      mainWindow.setOpacity(0.3);
+      aboutModalWindow!.show();
+      mainWindow!.setOpacity(0.3);
       // close aboutModalWindow when a click event happens at the renderer. 
       ipcMain.on('close-about-window', (e: Event) => {
-        aboutModalWindow.close();
-        mainWindow.setOpacity(1); //opacity only works on windows and iOS, not on linux
+        aboutModalWindow!.close();
+        mainWindow!.setOpacity(1); //opacity only works on windows and iOS, not on linux
       })
       setTimeout(() => {
         if(aboutModalWindow)
           aboutModalWindow.close();
-          mainWindow.setOpacity(1); //opacity only works on windows and iOS, not on linux
+          mainWindow!.setOpacity(1); //opacity only works on windows and iOS, not on linux
       }, 10000);
     }, 1000);
   });
