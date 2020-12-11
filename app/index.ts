@@ -8,6 +8,13 @@ const currencyCodeSelect:HTMLSelectElement = document.getElementById("currencyCo
 const getRatesButton:HTMLButtonElement = document.getElementById("getRatesButton") as HTMLButtonElement
 const clearButton:HTMLButtonElement = document.getElementById("clearButton") as HTMLButtonElement
 const resultTextArea:HTMLTextAreaElement = document.getElementById("resultTextArea") as HTMLTextAreaElement
+const whiteThemeImg:HTMLImageElement = document.getElementById("whiteTheme") as HTMLImageElement
+const blackThemeImg:HTMLImageElement = document.getElementById("blackTheme") as HTMLImageElement
+const body: HTMLBodyElement = document.getElementsByTagName("body")[0] as HTMLBodyElement
+const whiteThemeDiv: HTMLDivElement = document.getElementById("whiteThemeDiv") as HTMLDivElement
+const blackThemeDiv: HTMLDivElement = document.getElementById("blackThemeDiv") as HTMLDivElement
+const leftSpan: HTMLSpanElement = document.getElementsByClassName("leftSpan")[0] as HTMLSpanElement
+const anchorElementArray: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName("a") as HTMLCollectionOf<HTMLAnchorElement>
 function getCurrencyExchangeRates(currencyCode:string): void{
     axios.get(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
     .then(response => {
@@ -50,6 +57,28 @@ function buttonAction(): void{
         getCurrencyExchangeRates(currencyCode)
     }
 }
+function setTheme(themeType: string){
+    if(themeType === "whiteTheme"){
+        body.style.backgroundColor = "white"
+        body.style.color = "black"
+        leftSpan.style.color = "green"
+        leftSpan.style.fontWeight = "bold"
+        Array.from(anchorElementArray).forEach((anchor: HTMLAnchorElement) => {
+            anchor.style.color = "black"
+        })
+        whiteThemeDiv.style.display = "none"
+        blackThemeDiv.style.display = "inline-block"
+    } else{
+        body.style.backgroundColor = "black"
+        body.style.color = "white"
+        leftSpan.style.color = "greenyellow"
+        Array.from(anchorElementArray).forEach((anchor: HTMLAnchorElement) => {
+            anchor.style.color = "white"
+        })
+        blackThemeDiv.style.display = "none"
+        whiteThemeDiv.style.display = "inline-block"
+    }
+}
 getRatesButton.onclick = function() {
     buttonAction()
 }
@@ -58,10 +87,29 @@ clearButton.onclick = function() {
     currencyCode=''
     currencyCodeSelect.selectedIndex = 0
 }
+whiteThemeImg.onclick = function(){
+    setTheme("whiteTheme")
+}
+blackThemeImg.onclick = function(){
+    setTheme("blackTheme")
+}
+whiteThemeDiv.onpointerover = function(){
+    whiteThemeDiv.style.backgroundColor = "greenyellow"
+}
+whiteThemeDiv.onpointerout = function(){
+    whiteThemeDiv.style.backgroundColor = ""
+}
+blackThemeDiv.onpointerover = function(){
+    blackThemeDiv.style.backgroundColor = "greenyellow"
+}
+blackThemeDiv.onpointerout = function(){
+    blackThemeDiv.style.backgroundColor = ""
+}
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {
         const option = document.createElement("OPTION") as HTMLOptionElement
         option.text = key
         currencyCodeSelect.options.add(option)
     })
+    setTheme("blackTheme")
 })

@@ -9,18 +9,27 @@
 </head>
 <body>
     <h1>Exchange Rate Client App</h1>
-    <!-- <input type="text" id="currencyCodeTextInput" placeholder="currency code" /> -->
-    <select id="currencyCodeSelect">
-        <option value=_ disabled selected>Select Currency</option>
-    </select>
-    <br>
-    <textarea id="resultTextArea" placeholder="Exchange Rates..." readonly></textarea>
-    <br>
-    <button id="getRatesButton">Get Rates</button>
-    <button id="clearButton">Clear</button>
+    <div id="form">
+        <select id="currencyCodeSelect">
+            <option value=_ disabled selected>Select Currency</option>
+        </select>
+        <br>
+        <textarea id="resultTextArea" placeholder="Exchange Rates..." readonly></textarea>
+        <br>
+        <button id="getRatesButton">Get Rates</button>
+        <button id="clearButton">Clear</button>
+    </div>
     <footer>
         <span class="leftSpan">Source:</span><span class="rightSpan"><a target="_blank" href="https://www.exchangerate-api.com">Currency Conversion by ExchangeRate-API.com</a></span>
     </footer>
+    <div id="themeChange">
+        <div id="whiteThemeDiv">
+            <img src="img/whiteTheme.png" id="whiteTheme" alt="whiteTheme" title="Change to light theme" />
+        </div>
+        <div id="blackThemeDiv">
+            <img src="img/blackTheme.png" id="blackTheme" alt="blackTheme" title="Change to dark theme" />
+        </div>
+    </div>
     <script>var exports = {};</script>
     <script src='index.js'></script>
 </body>
