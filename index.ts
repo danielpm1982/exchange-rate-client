@@ -1,14 +1,11 @@
-const electron = require('electron'); 
+const { app, BrowserWindow, ipcMain, dialog } = require('electron'); 
+import { Notification } from 'electron'
 const windowStateKeeper = require('electron-window-state')
-
-// Module to control application life. 
-const app = electron.app; 
-
-// Module to create native browser window. 
-const BrowserWindow = electron.BrowserWindow; 
-
-// Module to create a communicator with the renderer processes. 
-const ipcMain =  electron.ipcMain;
+const fs = require('fs')
+const path = require('path')
+const os = require('os')
+import ConversionRatesInterface from './app/ConversionRatesInterface'
+import printOptions from './app/printOptions'
 
 // Keep a global reference of the window object,  
 // if you don't, the window will be closed automatically 
@@ -116,7 +113,7 @@ app.on('ready', function() {
   
   // Open the DevTools. 
   // mainWindow.webContents.openDevTools();
-  
+
   // Emitted when the main window is closed. 
   mainWindow.on('closed', function() { 
     // Dereference the window object, usually you 
@@ -131,3 +128,81 @@ app.on('ready', function() {
     aboutModalWindow = null; 
   });
 });
+
+ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
+  // eventually process ratesResult at the main process side, then change the
+  // mainWindow webContents file to indexPrint.html, send back the ratesResult 
+  // to the renderer side of this window and print that to the default available 
+  // printer. If none is available show a notification and a dialog message modal box.
+  mainWindow?.webContents.loadFile("app/indexPrint.html").then( () => {
+    mainWindow?.webContents.send("showRatesResult", ratesResultObject)
+    mainWindow?.webContents.print(printOptions as Electron.WebContentsPrintOptions, (success: boolean, failureReason: string) => { 
+      if (!success){
+        new Notification({
+          title: 'Error printing',
+          body: failureReason
+        }).show()
+        dialog.showMessageBox(mainWindow!, {
+          type: "error",
+          buttons: ["OK"],
+          title: "Error printing",
+          message: failureReason+". Please check if your printer is installed and set as a default printer at your Operating System, and try again !"
+        })
+      } else{
+        new Notification({
+          title: 'Printing done !',
+          body: "Printing process successfully executed !"
+        }).show()
+        dialog.showMessageBox(mainWindow!, {
+          type: "info",
+          buttons: ["OK"],
+          title: "Printing done !",
+          message: "Printing process successfully executed !"
+        })
+      }
+    });
+  })
+})
+
+ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
+  // eventually process ratesResult at the main process side, then change the
+  // mainwindow webContents file to indexPrint.html, send back the ratesResult 
+  // to the renderer side of this window and print that to a pdf file at the desktop.
+  mainWindow?.webContents.loadFile("app/indexPrint.html").then( () => {
+    mainWindow?.webContents.send("showRatesResult", ratesResult)
+    mainWindow?.webContents.printToPDF({}).then( data => {
+      const pdfPath = path.join(os.homedir(), 'Desktop', "rate-results.pdf")
+      fs.writeFile(pdfPath, data, (error:Error) => {
+        if(error){
+          throw error
+        } else{
+          new Notification({
+            title: 'Printing to PDF done !',
+            body: "Printing to PDF process successfully executed ! Content saved at: "+pdfPath+" ."
+          }).show()
+          dialog.showMessageBox(mainWindow!, {
+            type: "info",
+            buttons: ["OK"],
+            title: 'Printing to PDF done !',
+            message: "Printing to PDF process successfully executed ! Content saved at: "+pdfPath+" ."
+          })
+        }
+      })
+    }).catch(error => {
+      new Notification({
+        title: 'Error printing',
+        body: error.message
+      }).show()
+      dialog.showMessageBox(mainWindow!, {
+        type: "error",
+        buttons: ["OK"],
+        title: "Error printing to PDF",
+        message: error.message+". Please check your pdf printer at your Operating System, and try again !"
+      })
+    })
+  })
+})
+
+ipcMain.on("/index", (_event: Event) => {
+  mainWindow?.webContents.loadFile("app/index.html")
+})

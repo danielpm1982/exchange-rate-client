@@ -80,22 +80,66 @@ footer{
     margin-bottom: 0em;
     margin-top: 2.5em;
 }
-div#themeChange{
-    width: 10em;
-    margin: auto;
-    margin-top: 1em;
+footer.leftAligned{
+    text-align: left;
+    margin-left: 2em;
 }
-div#themeChange div#whiteThemeDiv, div#themeChange div#blackThemeDiv{
-    width: 3em;
-    height: 4em;
-    display: inline-block;
+nav#bottomNavBar{
+    display: table;
+    margin: 1em auto 1em auto;
 }
-div#themeChange img#whiteTheme, div#themeChange img#blackTheme{
-    width: 1.5em;
-    margin-left: 0.2em;
-    margin-right: 0.2em;
-    padding: 0.5em 0.1em 0.2em 0.1em;
+div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv{
+    display: table-cell;
+    width: 80px;
+    height: 80px;
+}
+div#whiteThemeDiv, div#blackThemeDiv{
+    height: 100px;
+}
+div#homeDiv{
+    width: 5em;
+    height: 5em;
+    margin-top: 2em;
+}
+img#whiteTheme, img#blackTheme{
+    width: 2em;
+    position: relative;
+    top: 0.6em;
+}
+img#print{
+    width: 3.3em;
+    position: relative;
+    top: 0.32em;
+}
+img#printToPDF{
+    width: 3.8em;
+    position: relative;
+    top: 0.55em;
+}
+img#home{
+    width: 3.8em;
+    position: relative;
+    top: 0.5em;
+    left: 0.5em;
 }
 div#form{
     margin-top: -2em;
+}
+/* article#resultPrintFormat{
+    white-space: pre-line;
+    text-align: left;
+    width: 50%;
+    margin: 2em 2em 2em 2em;
+} */
+ul#resultPrintFormatList{
+    list-style-type: none;
+    text-align: left;
+    width: 50%;
+    margin: 2em 0em 2em 0em;
+}
+p#resultPrintFormatP{
+    text-align: left;
+    margin-left: 1.6em;
+    font-size: 1.2em;
+    font-weight: bold;
 }

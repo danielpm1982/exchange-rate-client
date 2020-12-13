@@ -1,32 +1,26 @@
 import axios from 'axios'
+import { ipcRenderer } from 'electron'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
 const apiKey = "d0ef71289ff8ca5bc01d1b94"
-let currencyCode = ''
-// const currencyCodeTextInput:HTMLInputElement = document.getElementById("currencyCodeTextInput")! as HTMLInputElement
+let currencyCode: string | null = null
+let ratesResult: ConversionRatesInterface | null = null
+let lastUpdated: string | null = null
 const currencyCodeSelect:HTMLSelectElement = document.getElementById("currencyCodeSelect")! as HTMLSelectElement
 const getRatesButton:HTMLButtonElement = document.getElementById("getRatesButton") as HTMLButtonElement
 const clearButton:HTMLButtonElement = document.getElementById("clearButton") as HTMLButtonElement
 const resultTextArea:HTMLTextAreaElement = document.getElementById("resultTextArea") as HTMLTextAreaElement
 const whiteThemeImg:HTMLImageElement = document.getElementById("whiteTheme") as HTMLImageElement
 const blackThemeImg:HTMLImageElement = document.getElementById("blackTheme") as HTMLImageElement
+const printImg:HTMLImageElement = document.getElementById("print") as HTMLImageElement
+const printToPDFImg:HTMLImageElement = document.getElementById("printToPDF") as HTMLImageElement
 const body: HTMLBodyElement = document.getElementsByTagName("body")[0] as HTMLBodyElement
 const whiteThemeDiv: HTMLDivElement = document.getElementById("whiteThemeDiv") as HTMLDivElement
 const blackThemeDiv: HTMLDivElement = document.getElementById("blackThemeDiv") as HTMLDivElement
+const printDiv: HTMLDivElement = document.getElementById("printDiv") as HTMLDivElement
+const printToPDFDiv: HTMLDivElement = document.getElementById("printToPDFDiv") as HTMLDivElement
 const leftSpan: HTMLSpanElement = document.getElementsByClassName("leftSpan")[0] as HTMLSpanElement
 const anchorElementArray: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName("a") as HTMLCollectionOf<HTMLAnchorElement>
-function getCurrencyExchangeRates(currencyCode:string): void{
-    axios.get(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
-    .then(response => {
-        if(response.status == 200){
-            console.log(response)
-            setTextAreaResult(response.data.time_last_update_utc as string, response.data.conversion_rates as ConversionRatesInterface)
-        }
-    })
-    .catch(error => {
-        alert('Can\'t show result ! Please, try again later !\n\n'+error)
-    })
-}
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
     const inputIndex = currencyCodeSelect.selectedIndex
@@ -38,7 +32,21 @@ function setCurrencyCode(): boolean{
         return false
     }
 }
-function setTextAreaResult(timeLastUpdate: string, conversion_rates: ConversionRatesInterface | ''){
+function getCurrencyExchangeRates(currencyCode:string): void{
+    axios.get(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
+    .then(response => {
+        if(response.status == 200){
+            console.log(response)
+            lastUpdated = response.data.time_last_update_utc
+            ratesResult = response.data.conversion_rates
+            setTextAreaResult( lastUpdated, ratesResult )
+        }
+    })
+    .catch(error => {
+        alert('Can\'t show result ! Please, try again later !\n\n'+error)
+    })
+}
+function setTextAreaResult(timeLastUpdate: string | null, conversion_rates: ConversionRatesInterface | null){
     if(timeLastUpdate && conversion_rates){
         let result: string = "Updated: "+timeLastUpdate+"\n\n"
         const keyArray: string[] = Object.keys(conversion_rates)
@@ -54,7 +62,7 @@ function setTextAreaResult(timeLastUpdate: string, conversion_rates: ConversionR
 }
 function buttonAction(): void{
     if(setCurrencyCode()){
-        getCurrencyExchangeRates(currencyCode)
+        getCurrencyExchangeRates(currencyCode!)
     }
 }
 function setTheme(themeType: string){
@@ -83,15 +91,31 @@ getRatesButton.onclick = function() {
     buttonAction()
 }
 clearButton.onclick = function() {
-    setTextAreaResult('', '')
-    currencyCode=''
     currencyCodeSelect.selectedIndex = 0
+    currencyCode = null
+    lastUpdated = null
+    ratesResult = null
+    setTextAreaResult(lastUpdated, ratesResult)    
 }
 whiteThemeImg.onclick = function(){
     setTheme("whiteTheme")
 }
 blackThemeImg.onclick = function(){
     setTheme("blackTheme")
+}
+printImg.onclick = function() {
+    if(lastUpdated && currencyCode && ratesResult){
+        ipcRenderer.send("printFromIndex", {lastUpdated, currencyCode, ratesResult})
+    } else{
+        alert("First select a currency and get the rates, in order to print the result !")
+    }
+}
+printToPDFImg.onclick = function() {
+    if(lastUpdated && currencyCode && ratesResult){
+        ipcRenderer.send("printToPDFFromIndex", {lastUpdated, currencyCode, ratesResult})
+    } else{
+        alert("First select a currency and get the rates, in order to print the result to a pdf file !")
+    }
 }
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
@@ -105,11 +129,23 @@ blackThemeDiv.onpointerover = function(){
 blackThemeDiv.onpointerout = function(){
     blackThemeDiv.style.backgroundColor = ""
 }
+printDiv.onpointerover = function(){
+    printDiv.style.backgroundColor = "greenyellow"
+}
+printDiv.onpointerout = function(){
+    printDiv.style.backgroundColor = ""
+}
+printToPDFDiv.onpointerover = function(){
+    printToPDFDiv.style.backgroundColor = "greenyellow"
+}
+printToPDFDiv.onpointerout = function(){
+    printToPDFDiv.style.backgroundColor = ""
+}
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {
         const option = document.createElement("OPTION") as HTMLOptionElement
         option.text = key
         currencyCodeSelect.options.add(option)
     })
-    setTheme("blackTheme")
+    setTheme("blackTheme") // dark theme as default, can be toggled to light theme by the user
 })
