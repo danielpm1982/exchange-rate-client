@@ -21,6 +21,8 @@ const printDiv: HTMLDivElement = document.getElementById("printDiv") as HTMLDivE
 const printToPDFDiv: HTMLDivElement = document.getElementById("printToPDFDiv") as HTMLDivElement
 const leftSpan: HTMLSpanElement = document.getElementsByClassName("leftSpan")[0] as HTMLSpanElement
 const anchorElementArray: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName("a") as HTMLCollectionOf<HTMLAnchorElement>
+const logoExchangeRateAPIDiv: HTMLDivElement = document.getElementById("logoExchangeRateAPIDiv") as HTMLDivElement
+
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
     const inputIndex = currencyCodeSelect.selectedIndex
@@ -128,6 +130,12 @@ blackThemeDiv.onpointerover = function(){
 }
 blackThemeDiv.onpointerout = function(){
     blackThemeDiv.style.backgroundColor = ""
+}
+logoExchangeRateAPIDiv.onpointerover = function(){
+    logoExchangeRateAPIDiv.style.backgroundColor = "greenyellow"
+}
+logoExchangeRateAPIDiv.onpointerout = function(){
+    logoExchangeRateAPIDiv.style.backgroundColor = ""
 }
 printDiv.onpointerover = function(){
     printDiv.style.backgroundColor = "greenyellow"

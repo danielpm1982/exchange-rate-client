@@ -88,7 +88,7 @@ nav#bottomNavBar{
     display: table;
     margin: 1em auto 1em auto;
 }
-div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv{
+div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv{
     display: table-cell;
     width: 80px;
     height: 80px;
@@ -105,6 +105,12 @@ img#whiteTheme, img#blackTheme{
     width: 2em;
     position: relative;
     top: 0.6em;
+}
+img#logoExchangeRateAPI{
+    width: 4em;
+    position: relative;
+    top: 0.2em;
+    left: 0.1em;
 }
 img#print{
     width: 3.3em;

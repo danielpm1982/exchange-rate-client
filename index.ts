@@ -1,9 +1,8 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron'); 
+const { app, BrowserWindow, ipcMain, dialog, session } = require('electron'); 
 import { Notification } from 'electron'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
-const os = require('os')
 import ConversionRatesInterface from './app/ConversionRatesInterface'
 import printOptions from './app/printOptions'
 
@@ -27,7 +26,7 @@ app.on('window-all-closed', function()
 
 // This method will be called when Electron has finished 
 // initialization and is ready to create browser windows. 
-app.on('ready', function() { 
+app.on('ready', function() {
   
   // Create an object, through the windowStateKeeper() function, and set 
   // the default values of width and height that, by default, the managed 
@@ -35,13 +34,66 @@ app.on('ready', function() {
   // available at the winState object
   let winState = windowStateKeeper({
     defaultWidth: 1143,
-    deafultHeight: 800,
+    defaultHeight: 800,
   })
   
+  // Create/Set webcontent custom session for mainWindow to use, and through the 
+  // 'will-download' event set a default download path - which prevents default 
+  // behavior of the download of the anchor html tag by default
+  const customSessionPart1 = session.fromPartition("persist:part1")
+  customSessionPart1.on("will-download", (_event, item, _webContents) => {
+    const pathToSave = path.join(app.getPath("desktop"), "logoExchangeRateAPI.png") as string
+    console.log("saving to path: "+pathToSave)
+    item.setSavePath(pathToSave)
+    item.on('updated', (_event, state) => {
+      if (state === 'interrupted') {
+        console.log('Download is interrupted but can be resumed')
+      } else if (state === 'progressing') {
+        if (item.isPaused()) {
+          console.log('Download is paused')
+        } else {
+          console.log(`Received bytes: ${item.getReceivedBytes()}`)
+        }
+      }
+    })
+    item.once('done', (_event, state) => {
+      console.log("final state: "+state)
+      if (state === 'completed') {
+        console.log('Download successfully')
+        new Notification({
+          title: state.charAt(0).toUpperCase()+state.slice(1),
+          body: 'Download successfull ! File downloaded to path\n'+pathToSave
+        }).show()
+        dialog.showMessageBox(mainWindow!, {
+          type: 'info',
+          buttons: ["OK"],
+          title: state.charAt(0).toUpperCase()+state.slice(1),
+          message: 'Download successfull ! File downloaded to path\n'+pathToSave
+        })
+      } else {
+        console.log(`Download failed: ${state}`)
+        new Notification({
+          title: state.charAt(0).toUpperCase()+state.slice(1),
+          body: 'Download failed !'
+        }).show()
+        // dialog.showMessageBox(mainWindow!, {
+        //   type: "error",
+        //   buttons: ["OK"],
+        //   title: state.charAt(0).toUpperCase()+state.slice(1),
+        //   message: 'Download failed !'
+        // })
+        dialog.showErrorBox(
+          state.charAt(0).toUpperCase()+state.slice(1),
+          'Download failed !'
+        )
+      }
+    })
+  })
+
   // Create the browser main window based on stored props values 
   // (width, height, x and y) from the winState object created above.
   // If no custom values exist, saved from the last app user usage,
-  // use the default winState values.
+  // use the default winState values. Set the session customly on webPreferences
   mainWindow = new BrowserWindow({
     // width: 1143,
     // height: 800,
@@ -59,7 +111,8 @@ app.on('ready', function() {
     alwaysOnTop: false,
     show: false,
     webPreferences: {
-      nodeIntegration: true
+      nodeIntegration: true,
+      session: customSessionPart1
     }
   });
 
@@ -142,12 +195,16 @@ ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: str
           title: 'Error printing',
           body: failureReason
         }).show()
-        dialog.showMessageBox(mainWindow!, {
-          type: "error",
-          buttons: ["OK"],
-          title: "Error printing",
-          message: failureReason+". Please check if your printer is installed and set as a default printer at your Operating System, and try again !"
-        })
+        // dialog.showMessageBox(mainWindow!, {
+        //   type: "error",
+        //   buttons: ["OK"],
+        //   title: "Error printing",
+        //   message: failureReason+". Please check if your printer is installed and set as a default printer at your Operating System, and try again !"
+        // })
+        dialog.showErrorBox(
+          "Error printing",
+          failureReason+". Please check if your printer is installed and set as a default printer at your Operating System, and try again !"
+        )
       } else{
         new Notification({
           title: 'Printing done !',
@@ -171,7 +228,7 @@ ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
   mainWindow?.webContents.loadFile("app/indexPrint.html").then( () => {
     mainWindow?.webContents.send("showRatesResult", ratesResult)
     mainWindow?.webContents.printToPDF({}).then( data => {
-      const pdfPath = path.join(os.homedir(), 'Desktop', "rate-results.pdf")
+      const pdfPath = path.join(app.getPath("desktop"), "rate-results.pdf")
       fs.writeFile(pdfPath, data, (error:Error) => {
         if(error){
           throw error
@@ -193,12 +250,16 @@ ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
         title: 'Error printing',
         body: error.message
       }).show()
-      dialog.showMessageBox(mainWindow!, {
-        type: "error",
-        buttons: ["OK"],
-        title: "Error printing to PDF",
-        message: error.message+". Please check your pdf printer at your Operating System, and try again !"
-      })
+      // dialog.showMessageBox(mainWindow!, {
+      //   type: "error",
+      //   buttons: ["OK"],
+      //   title: "Error printing to PDF",
+      //   message: error.message+". Please check your pdf printer at your Operating System, and try again !"
+      // })
+      dialog.showErrorBox(
+        "Error printing to PDF",
+        error.message+". Please check your pdf printer at your Operating System, and try again !"
+      )
     })
   })
 })
