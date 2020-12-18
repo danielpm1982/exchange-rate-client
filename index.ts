@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, session } = require('electron'); 
+const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut } = require('electron'); 
 import { Notification } from 'electron'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
@@ -19,10 +19,11 @@ app.on('window-all-closed', function()
   // On OS X it is common for applications and their 
   // menu barto stay active until the user quits  
   // explicitly with Cmd + Q if (process.platform != 'darwin') 
-  { 
+  {
+    globalShortcut.unregisterAll();
     app.quit(); 
   } 
-}); 
+});
 
 // This method will be called when Electron has finished 
 // initialization and is ready to create browser windows. 
@@ -167,6 +168,25 @@ app.on('ready', function() {
   // Open the DevTools. 
   // mainWindow.webContents.openDevTools();
 
+  // Avoid user exiting through 'Alt+F4' shortcut, and instruct him to use 'CommandOrControl+F4'
+  // if he really wanna exit the app. As as global shortcut, the mainWindow or the app do not
+  // need to be focused for the event to occur and be listened. These global shortcuts are removed
+  // in the 'window-all-closed' event listener, set above, before the app quits, for not affecting
+  // other applications.
+  mainWindow.on("close", function(e: Event){
+    e.preventDefault()
+    dialog.showMessageBox(mainWindow!, {
+      type: "warning",
+      buttons: ["OK"],
+      title: "Closing this mainWindow will close the app !",
+      message: "If you wanna leave this app, please use the 'commandOrControl+F4' shortcut instead of 'Alt+F4' !"
+    })
+  })
+  globalShortcut.register("CommandOrControl+F4", () => {
+    mainWindow?.removeAllListeners("close")
+    mainWindow?.close()
+  })
+
   // Emitted when the main window is closed. 
   mainWindow.on('closed', function() { 
     // Dereference the window object, usually you 
@@ -267,3 +287,4 @@ ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
 ipcMain.on("/index", (_event: Event) => {
   mainWindow?.webContents.loadFile("app/index.html")
 })
+
