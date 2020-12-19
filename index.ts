@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut } = require('electron'); 
+const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut } = require('electron')
 import { Notification } from 'electron'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
@@ -9,26 +9,15 @@ import printOptions from './app/printOptions'
 // Keep a global reference of the window object,  
 // if you don't, the window will be closed automatically 
 // when the JavaScript object is garbage collected. 
-let mainWindow: Electron.BrowserWindow | null; 
+let mainWindow: Electron.BrowserWindow | null
+let aboutModalWindow: Electron.BrowserWindow | null
 
-let aboutModalWindow: Electron.BrowserWindow | null;
+// ******************************************************************************************
+// BrowserWindow instances creation and setting:
+// ******************************************************************************************
 
-// Quit when all windows are closed. 
-app.on('window-all-closed', function() 
-{ 
-  // On OS X it is common for applications and their 
-  // menu barto stay active until the user quits  
-  // explicitly with Cmd + Q if (process.platform != 'darwin') 
-  {
-    globalShortcut.unregisterAll();
-    app.quit(); 
-  } 
-});
-
-// This method will be called when Electron has finished 
-// initialization and is ready to create browser windows. 
-app.on('ready', function() {
-  
+// Create and set mainWindow properties, custom session, state management and event listeners
+function createMainWindow(): void {
   // Create an object, through the windowStateKeeper() function, and set 
   // the default values of width and height that, by default, the managed 
   // window should have set initially, if no other stored values are 
@@ -77,12 +66,6 @@ app.on('ready', function() {
           title: state.charAt(0).toUpperCase()+state.slice(1),
           body: 'Download failed !'
         }).show()
-        // dialog.showMessageBox(mainWindow!, {
-        //   type: "error",
-        //   buttons: ["OK"],
-        //   title: state.charAt(0).toUpperCase()+state.slice(1),
-        //   message: 'Download failed !'
-        // })
         dialog.showErrorBox(
           state.charAt(0).toUpperCase()+state.slice(1),
           'Download failed !'
@@ -115,58 +98,21 @@ app.on('ready', function() {
       nodeIntegration: true,
       session: customSessionPart1
     }
-  });
+  })
 
   // sets the window whose position and move events will be listened to
-  // by the winState object that will manage the store and retrieval
-  // of those values on the next app use
+  // by the winState object that will manage the storing and retrieval
+  // of those values on the next app execution
   winState.manage(mainWindow)
 
-  // Create the browser about modal window
-  aboutModalWindow = new BrowserWindow({
-    width: 650,
-    height: 470,
-    parent: mainWindow,
-    modal: true,
-    resizable: false,
-    frame: false,
-    movable: true,
-    alwaysOnTop: true,
-    show: false,
-    webPreferences: {
-      nodeIntegration: true
-    }
-  });
-
   // and load the index.html of the app on main window. 
-  mainWindow.loadFile("app/index.html"); 
-  
-  // and load the about.html of the app on about modal window. 
-  aboutModalWindow.loadFile("app/about.html"); 
+  mainWindow.loadFile("app/index.html")
 
   // show window only when all content is loaded.
-  mainWindow.once("ready-to-show", mainWindow.show);
-  
-  // show window only when all content is loaded.
-  aboutModalWindow.once("ready-to-show", function(){
-    setTimeout(() => {
-      aboutModalWindow!.show();
-      mainWindow!.setOpacity(0.3);
-      // close aboutModalWindow when a click event happens at the renderer. 
-      ipcMain.on('close-about-window', (e: Event) => {
-        aboutModalWindow!.close();
-        mainWindow!.setOpacity(1); //opacity only works on windows and iOS, not on linux
-      })
-      setTimeout(() => {
-        if(aboutModalWindow)
-          aboutModalWindow.close();
-          mainWindow!.setOpacity(1); //opacity only works on windows and iOS, not on linux
-      }, 10000);
-    }, 1000);
-  });
-  
+  mainWindow.once("ready-to-show", mainWindow.show)
+
   // Open the DevTools. 
-  // mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools()
 
   // Avoid user exiting through 'Alt+F4' shortcut, and instruct him to use 'CommandOrControl+F4'
   // if he really wanna exit the app. As as global shortcut, the mainWindow or the app do not
@@ -179,7 +125,7 @@ app.on('ready', function() {
       type: "warning",
       buttons: ["OK"],
       title: "Closing this mainWindow will close the app !",
-      message: "If you wanna leave this app, please use the 'commandOrControl+F4' shortcut instead of 'Alt+F4' !"
+      message: "If you wanna leave this app, please use the 'CommandOrControl+F4' shortcut instead of 'Alt+F4' !"
     })
   })
   globalShortcut.register("CommandOrControl+F4", () => {
@@ -193,14 +139,81 @@ app.on('ready', function() {
     // would store windows in an array if your 
     // app supports multi windows, this is the time 
     // when you should delete the corresponding element. 
-    mainWindow = null; 
-  });
+    mainWindow = null
+  })
+}
+
+// Create and set aboutModelWindow properties, default session and event listeners
+function createAboutModelWindow(): void {
+  // Create the browser about modal window
+  aboutModalWindow = new BrowserWindow({
+    width: 650,
+    height: 470,
+    parent: mainWindow!,
+    modal: true,
+    resizable: false,
+    frame: false,
+    movable: true,
+    alwaysOnTop: true,
+    show: false,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+  
+  // and load the about.html of the app on about modal window. 
+  aboutModalWindow.loadFile("app/about.html")
+
+  // show window only when all content is loaded.
+  aboutModalWindow.once("ready-to-show", function(){
+    setTimeout(() => {
+      aboutModalWindow!.show()
+      mainWindow!.setOpacity(0.3)
+      // close aboutModalWindow when a click event happens at the renderer. 
+      ipcMain.on('close-about-window', (e: Event) => {
+        aboutModalWindow!.close()
+        mainWindow!.setOpacity(1) //opacity only works on windows and iOS, not on linux
+      })
+      setTimeout(() => {
+        if(aboutModalWindow)
+          aboutModalWindow.close()
+          mainWindow!.setOpacity(1) //opacity only works on windows and iOS, not on linux
+      }, 10000)
+    }, 1000)
+  })
   
   // Emitted when the about modal window is closed. 
   aboutModalWindow.on('closed', function() { 
-    aboutModalWindow = null; 
-  });
-});
+    aboutModalWindow = null
+  })
+}
+
+// ******************************************************************************************
+// app event listeners setting:
+// ******************************************************************************************
+
+// This method will be called when Electron has finished 
+// initialization and is ready to create browser windows. 
+app.on('ready', function() {
+  createMainWindow()
+  createAboutModelWindow()
+})
+
+// Quit when all windows are closed. 
+app.on('window-all-closed', function() 
+{ 
+  // On OS X it is common for applications and their 
+  // menu barto stay active until the user quits  
+  // explicitly with Cmd + Q if (process.platform != 'darwin') 
+  {
+    globalShortcut.unregisterAll()
+    app.quit()
+  } 
+})
+
+// ******************************************************************************************
+// ipcMain event listeners setting (listeners to the renderer processes events):
+// ******************************************************************************************
 
 ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
   // eventually process ratesResult at the main process side, then change the
@@ -237,7 +250,7 @@ ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: str
           message: "Printing process successfully executed !"
         })
       }
-    });
+    })
   })
 })
 
@@ -287,4 +300,3 @@ ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
 ipcMain.on("/index", (_event: Event) => {
   mainWindow?.webContents.loadFile("app/index.html")
 })
-
