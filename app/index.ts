@@ -22,6 +22,7 @@ const printToPDFDiv: HTMLDivElement = document.getElementById("printToPDFDiv") a
 const leftSpan: HTMLSpanElement = document.getElementsByClassName("leftSpan")[0] as HTMLSpanElement
 const anchorElementArray: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName("a") as HTMLCollectionOf<HTMLAnchorElement>
 const logoExchangeRateAPIDiv: HTMLDivElement = document.getElementById("logoExchangeRateAPIDiv") as HTMLDivElement
+const downloadLogoAnchor: HTMLAnchorElement = document.getElementById("downloadLogo") as HTMLAnchorElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -102,9 +103,15 @@ clearButton.onclick = function() {
 whiteThemeImg.onclick = function(){
     setTheme("whiteTheme")
 }
+ipcRenderer.on('whiteThemeFromMain', () => {
+    setTheme("whiteTheme")
+})
 blackThemeImg.onclick = function(){
     setTheme("blackTheme")
 }
+ipcRenderer.on('blackThemeFromMain', () => {
+    setTheme("blackTheme")
+})
 printImg.onclick = function() {
     if(lastUpdated && currencyCode && ratesResult){
         ipcRenderer.send("printFromIndex", {lastUpdated, currencyCode, ratesResult})
@@ -112,6 +119,13 @@ printImg.onclick = function() {
         alert("First select a currency and get the rates, in order to print the result !")
     }
 }
+ipcRenderer.on("printFromMain", () => {
+    if(lastUpdated && currencyCode && ratesResult){
+        ipcRenderer.send("printFromIndex", {lastUpdated, currencyCode, ratesResult})
+    } else{
+        alert("First select a currency and get the rates, in order to print the result !")
+    }
+})
 printToPDFImg.onclick = function() {
     if(lastUpdated && currencyCode && ratesResult){
         ipcRenderer.send("printToPDFFromIndex", {lastUpdated, currencyCode, ratesResult})
@@ -119,6 +133,16 @@ printToPDFImg.onclick = function() {
         alert("First select a currency and get the rates, in order to print the result to a pdf file !")
     }
 }
+ipcRenderer.on("printToPDFFromMain", () => {
+    if(lastUpdated && currencyCode && ratesResult){
+        ipcRenderer.send("printToPDFFromIndex", {lastUpdated, currencyCode, ratesResult})
+    } else{
+        alert("First select a currency and get the rates, in order to print the result to a pdf file !")
+    }
+})
+ipcRenderer.on("downloadLogoFromMain", () => {
+    downloadLogoAnchor.click()
+})
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
 }

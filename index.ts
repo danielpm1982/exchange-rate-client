@@ -1,16 +1,17 @@
-const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut } = require('electron')
-import { Notification } from 'electron'
+const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
+import { MenuItemConstructorOptions } from 'electron'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
 import ConversionRatesInterface from './app/ConversionRatesInterface'
 import printOptions from './app/printOptions'
 
-// Keep a global reference of the window object,  
+// Keep a global reference of the window and tray object,
 // if you don't, the window will be closed automatically 
 // when the JavaScript object is garbage collected. 
 let mainWindow: Electron.BrowserWindow | null
 let aboutModalWindow: Electron.BrowserWindow | null
+let tray: Electron.Tray | null
 
 // ******************************************************************************************
 // BrowserWindow instances creation and setting:
@@ -118,7 +119,8 @@ function createMainWindow(): void {
   // if he really wanna exit the app. As as global shortcut, the mainWindow or the app do not
   // need to be focused for the event to occur and be listened. These global shortcuts are removed
   // in the 'window-all-closed' event listener, set above, before the app quits, for not affecting
-  // other applications.
+  // other applications. This restriction is merely for demonstrating purposes, not a real feature 
+  // for this app. It can be simply commented out for allowing normal default closing.
   mainWindow.on("close", function(e: Event){
     e.preventDefault()
     dialog.showMessageBox(mainWindow!, {
@@ -141,6 +143,21 @@ function createMainWindow(): void {
     // when you should delete the corresponding element. 
     mainWindow = null
   })
+
+  // Create and set a menu to the mainWindow based on the MenuItemConstructorOptions array 
+  // template. Set that same menu both as a main Menu to the mainWindow directly as well as 
+  // like a popup context menu responsive to the mainWindow webcontents 'context-menu' event
+  // (right-button clicked event). Also create the app Tray and set the same menu as the tray menu.
+  const menu = Menu.buildFromTemplate(menuItemConstructorOptionsArray)
+  mainWindow.setMenu(menu)
+  mainWindow.webContents.on('context-menu', (e: Event) => {
+    menu.popup()
+  })
+  const pathTotrayIcon = path.join(__dirname, "app", "icon", "iconLinux.png") as string
+  tray = new Tray(pathTotrayIcon)
+  tray.setToolTip('Exchange Rate Client')
+  tray.setContextMenu(menu)
+  tray.setIgnoreDoubleClickEvents(true)
 }
 
 // Create and set aboutModelWindow properties, default session and event listeners
@@ -164,26 +181,27 @@ function createAboutModelWindow(): void {
   // and load the about.html of the app on about modal window. 
   aboutModalWindow.loadFile("app/about.html")
 
-  // show window only when all content is loaded.
-  aboutModalWindow.once("ready-to-show", function(){
-    setTimeout(() => {
-      aboutModalWindow!.show()
-      mainWindow!.setOpacity(0.3)
-      // close aboutModalWindow when a click event happens at the renderer. 
-      ipcMain.on('close-about-window', (e: Event) => {
-        aboutModalWindow!.close()
-        mainWindow!.setOpacity(1) //opacity only works on windows and iOS, not on linux
-      })
-      setTimeout(() => {
-        if(aboutModalWindow)
-          aboutModalWindow.close()
-          mainWindow!.setOpacity(1) //opacity only works on windows and iOS, not on linux
-      }, 10000)
-    }, 1000)
+  aboutModalWindow.once("ready-to-show", () => {
+    // show window only when all content is loaded.
+    aboutModalWindow?.show()
+    aboutModalWindow?.setAlwaysOnTop(true, "floating")
+    mainWindow?.setOpacity(0.3)
   })
-  
+
+  // close aboutModalWindow when a click event happens at the renderer or timeout is reached
+  ipcMain.on('close-about-window', (e: Event) => {
+    aboutModalWindow?.close()
+    mainWindow?.setOpacity(1) //opacity only works on windows and iOS, not on linux
+  })
+  const timeOut = setTimeout(() => {
+      aboutModalWindow?.close()
+      mainWindow?.setOpacity(1) //opacity only works on windows and iOS, not on linux
+  }, 10000)
+
   // Emitted when the about modal window is closed. 
-  aboutModalWindow.on('closed', function() { 
+  aboutModalWindow.on('closed', function() {
+    clearTimeout(timeOut)
+    ipcMain.removeAllListeners("close-about-window")
     aboutModalWindow = null
   })
 }
@@ -215,7 +233,7 @@ app.on('window-all-closed', function()
 // ipcMain event listeners setting (listeners to the renderer processes events):
 // ******************************************************************************************
 
-ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
+ipcMain.on("printFromIndex", (_event: Event, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
   // eventually process ratesResult at the main process side, then change the
   // mainWindow webContents file to indexPrint.html, send back the ratesResult 
   // to the renderer side of this window and print that to the default available 
@@ -228,12 +246,6 @@ ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: str
           title: 'Error printing',
           body: failureReason
         }).show()
-        // dialog.showMessageBox(mainWindow!, {
-        //   type: "error",
-        //   buttons: ["OK"],
-        //   title: "Error printing",
-        //   message: failureReason+". Please check if your printer is installed and set as a default printer at your Operating System, and try again !"
-        // })
         dialog.showErrorBox(
           "Error printing",
           failureReason+". Please check if your printer is installed and set as a default printer at your Operating System, and try again !"
@@ -254,7 +266,7 @@ ipcMain.on("printFromIndex", (event: Event, ratesResultObject: {lastUpdated: str
   })
 })
 
-ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
+ipcMain.on("printToPDFFromIndex", (_event: Event, ratesResult: string) => {
   // eventually process ratesResult at the main process side, then change the
   // mainwindow webContents file to indexPrint.html, send back the ratesResult 
   // to the renderer side of this window and print that to a pdf file at the desktop.
@@ -283,12 +295,6 @@ ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
         title: 'Error printing',
         body: error.message
       }).show()
-      // dialog.showMessageBox(mainWindow!, {
-      //   type: "error",
-      //   buttons: ["OK"],
-      //   title: "Error printing to PDF",
-      //   message: error.message+". Please check your pdf printer at your Operating System, and try again !"
-      // })
       dialog.showErrorBox(
         "Error printing to PDF",
         error.message+". Please check your pdf printer at your Operating System, and try again !"
@@ -300,3 +306,95 @@ ipcMain.on("printToPDFFromIndex", (event: Event, ratesResult: string) => {
 ipcMain.on("/index", (_event: Event) => {
   mainWindow?.webContents.loadFile("app/index.html")
 })
+
+// ******************************************************************************************
+// MenuItemConstructorOptions array, or menu template, which is set above to the Menu object, 
+// set, in turn, as the mainWindow Menu
+// ******************************************************************************************
+
+const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
+  {
+    role: 'fileMenu',
+    submenu: [
+      {
+        label: 'Print',
+        accelerator: 'CommandOrControl+P',
+        click: () => {
+          mainWindow?.webContents.send("printFromMain")
+        }
+      },
+      {
+        label: 'PrintToPDF',
+        accelerator: 'CommandOrControl+Shift+P',
+        click: () => {
+          mainWindow?.webContents.send("printToPDFFromMain")
+        }
+      },
+      {
+        label: 'Download Logo',
+        accelerator: 'CommandOrControl+Shift+L',
+        click: () => {
+          mainWindow?.webContents.send("downloadLogoFromMain")
+        }
+      },
+      {
+        type: 'separator'
+      },
+      {
+        role: 'quit'
+      }
+    ]
+  },
+  {
+    role: 'editMenu'
+  },
+  {
+    role: 'viewMenu',
+  },
+  {
+    label: 'Settings',
+    submenu: [
+      {
+        label: 'Theme',
+        submenu: [
+          {
+            label: 'White Theme',
+            click: () => {
+              mainWindow?.webContents.send('whiteThemeFromMain')
+            }
+          },
+          {
+            label: 'Black Theme',
+            click: () => {
+              mainWindow?.webContents.send('blackThemeFromMain')
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    role: 'services',
+    submenu: [
+      {
+        label: 'Exchange Rate',
+        click: () => {
+          mainWindow?.webContents.loadFile("app/index.html")
+        },
+        accelerator: 'CommandOrControl+S'
+      }
+    ]
+  },
+  {
+    role: 'help',
+    submenu: [
+      {
+        label: 'About',
+        click: () => {
+          createAboutModelWindow()
+        },
+        accelerator: 'CommandOrControl+U'
+      }
+    ]
+  }
+]
