@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
-import { MenuItemConstructorOptions, powerMonitor } from 'electron'
+import { MenuItemConstructorOptions, powerMonitor, screen } from 'electron'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
@@ -189,10 +189,12 @@ function createMainWindow(): void {
 
 // Create and set aboutModelWindow properties, default session and event listeners
 function createAboutModelWindow(): void {
-  // Create the browser about modal window
+  const primaryDisplay = screen.getPrimaryDisplay();
+  // Create the browser about modal window based on the screen primaryDisplay size
   aboutModalWindow = new BrowserWindow({
-    width: 650,
-    height: 470,
+    width: primaryDisplay.size.width/4.7,
+    height: primaryDisplay.size.height/1.8,
+    center: true,
     parent: mainWindow!,
     modal: true,
     resizable: false,
