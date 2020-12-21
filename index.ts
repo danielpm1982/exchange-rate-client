@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
-import { MenuItemConstructorOptions } from 'electron'
+import { MenuItemConstructorOptions, powerMonitor } from 'electron'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
@@ -158,6 +158,33 @@ function createMainWindow(): void {
   tray.setToolTip('Exchange Rate Client')
   tray.setContextMenu(menu)
   tray.setIgnoreDoubleClickEvents(true)
+
+  // Use powerMonitor to execute sample callback functions actions uppon power events, 
+  // for example, as 'suspend' and 'resume' power events occur. In this case, save the
+  // current rate results (if any) on suspending and reset the app defaults on resuming
+  powerMonitor.on('suspend', () => {
+    mainWindow?.webContents.send("rateResultStatusRequestFromMain")
+    ipcMain.once('rateResultStatusResponseFromIndex', (_e: Event, response: boolean) => {
+      //if there are current rate results, print them to a pdf file before suspending
+      if(response){
+        mainWindow?.webContents.send("printToPDFFromMain")
+      }
+    })
+  })
+  powerMonitor.on('resume', () => {
+    // clear existing rate results and set app props to default on resuming
+    mainWindow?.webContents.loadFile("app/index.html")
+    new Notification({
+      title: 'System Resumed from Suspension !',
+      body: "In case there were previous rate results, these have been saved to a Dekstop PDF file before suspending. App data has been reset on resuming."
+    }).show()
+    dialog.showMessageBox(mainWindow!, {
+      type: "info",
+      buttons: ["OK"],
+      title: 'System Resumed from Suspension !',
+      message: "In case there were previous rate results, these have been saved to a Desktop PDF file before suspending. App data has been reset on resuming."
+    })
+  })
 }
 
 // Create and set aboutModelWindow properties, default session and event listeners

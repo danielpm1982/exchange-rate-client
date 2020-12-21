@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { ipcRenderer } from 'electron'
+import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
 const apiKey = "d0ef71289ff8ca5bc01d1b94"
@@ -142,6 +143,13 @@ ipcRenderer.on("printToPDFFromMain", () => {
 })
 ipcRenderer.on("downloadLogoFromMain", () => {
     downloadLogoAnchor.click()
+})
+ipcRenderer.on("rateResultStatusRequestFromMain", (e: IpcRendererEvent) => {
+    if(resultTextArea?.value != ''){
+        e.sender.send("rateResultStatusResponseFromIndex", true)
+    } else{
+        e.sender.send("rateResultStatusResponseFromIndex", false)
+    }
 })
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
