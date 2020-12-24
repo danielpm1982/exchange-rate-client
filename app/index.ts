@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { ipcRenderer } from 'electron'
+import { BrowserWindowProxy, ipcRenderer } from 'electron'
 import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
@@ -24,6 +24,9 @@ const leftSpan: HTMLSpanElement = document.getElementsByClassName("leftSpan")[0]
 const anchorElementArray: HTMLCollectionOf<HTMLAnchorElement> = document.getElementsByTagName("a") as HTMLCollectionOf<HTMLAnchorElement>
 const logoExchangeRateAPIDiv: HTMLDivElement = document.getElementById("logoExchangeRateAPIDiv") as HTMLDivElement
 const downloadLogoAnchor: HTMLAnchorElement = document.getElementById("downloadLogo") as HTMLAnchorElement
+const websiteDiv: HTMLDivElement = document.getElementById("websiteDiv") as HTMLDivElement
+const websiteImg: HTMLImageElement = document.getElementById("website") as HTMLImageElement
+let websiteWindow: BrowserWindowProxy | null
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -151,6 +154,28 @@ ipcRenderer.on("rateResultStatusRequestFromMain", (e: IpcRendererEvent) => {
         e.sender.send("rateResultStatusResponseFromIndex", false)
     }
 })
+websiteImg.onclick = function(){
+    if(!websiteWindow){
+        websiteWindow = window.open("http://danielpm1982.com") as unknown as BrowserWindowProxy
+        const stringToEval = "const h1NewElement = document.createElement('h1'); h1NewElement.textContent = '(Referred from'; const h1NewElement2 = document.createElement('h1'); h1NewElement2.textContent = 'Exchange Rate Client App)'; document.getElementById('domainText').parentElement.append(document.createElement('br')); document.getElementById('domainText').parentElement.appendChild(h1NewElement);document.getElementById('domainText').parentElement.append(document.createElement('br')); document.getElementById('domainText').parentElement.appendChild(h1NewElement2);"
+        websiteWindow.eval(stringToEval)
+        websiteImg.title = "close website Window"
+        websiteImg.alt = "close website Window"
+        websiteImg.className = "unclickable"
+        setTimeout(() => {
+            websiteImg.className = ""
+        }, 1000)
+    } else{
+        websiteWindow.close()
+        websiteWindow = null
+        websiteImg.title = "go to danielpm1982.com"
+        websiteImg.alt = "go to danielpm1982.com"
+        websiteImg.className = "unclickable"
+        setTimeout(() => {
+            websiteImg.className = ""
+        }, 1000)
+    }
+}
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
 }
@@ -180,6 +205,12 @@ printToPDFDiv.onpointerover = function(){
 }
 printToPDFDiv.onpointerout = function(){
     printToPDFDiv.style.backgroundColor = ""
+}
+websiteDiv.onpointerover = function(){
+    websiteDiv.style.backgroundColor = "greenyellow"
+}
+websiteDiv.onpointerout = function(){
+    websiteDiv.style.backgroundColor = ""
 }
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {

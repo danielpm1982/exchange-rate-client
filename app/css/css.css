@@ -88,10 +88,14 @@ nav#bottomNavBar{
     display: table;
     margin: 1em auto 1em auto;
 }
-div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv{
+div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv,
+    div#websiteDiv{
     display: table-cell;
     width: 80px;
     height: 80px;
+}
+div#websiteDiv{
+    width: 130px;
 }
 div#whiteThemeDiv, div#blackThemeDiv{
     height: 100px;
@@ -127,6 +131,16 @@ img#home{
     position: relative;
     top: 0.5em;
     left: 0.5em;
+}
+img#website{
+    width: 5em;
+}
+.unclickable{
+    pointer-events: none;
+}
+img{
+    -webkit-user-select: none;
+    -moz-user-select: none;
 }
 div#form{
     margin-top: -2em;

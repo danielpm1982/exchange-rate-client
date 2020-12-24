@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
 import { MenuItemConstructorOptions, powerMonitor, screen } from 'electron'
+import { Display } from 'electron/main'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
@@ -12,6 +13,8 @@ import printOptions from './app/printOptions'
 let mainWindow: Electron.BrowserWindow | null
 let aboutModalWindow: Electron.BrowserWindow | null
 let tray: Electron.Tray | null
+
+let primaryDisplay: Display
 
 // ******************************************************************************************
 // BrowserWindow instances creation and setting:
@@ -112,6 +115,42 @@ function createMainWindow(): void {
   // show window only when all content is loaded.
   mainWindow.once("ready-to-show", mainWindow.show)
 
+  // Create, set and show a new BrowserWindow when 'new-window' event occurs from the mainWindow 
+  // renderer process
+  mainWindow.webContents.on('new-window', (event, url, _frameName, _disposition, _options, 
+    _additionalFeatures, _referrer, _postBody) => {
+    event.preventDefault()
+    const newWindow = new BrowserWindow({
+      width: primaryDisplay.size.width/4.8,
+      height: primaryDisplay.size.height/1.5,
+      x: 0,
+      y: 0,
+      resizable: true,
+      frame: true,
+      movable: true,
+      alwaysOnTop: true,
+      show: false,
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        enableRemoteModule: false,
+        experimentalFeatures: false,
+        zoomFactor: 1
+      }
+    })
+    newWindow.loadURL(url)
+    const websiteMenu = Menu.buildFromTemplate(menuItemConstructorOptionsArrayWebSiteWindow)
+    newWindow.setMenu(websiteMenu)
+    newWindow.webContents.on('context-menu', (e: Event) => {
+      websiteMenu.popup()
+    })
+    newWindow.on("ready-to-show", () => {
+      newWindow.show()
+      // newWindow.maximize()
+    })
+    event.newGuest = newWindow
+  })
+
   // Open the DevTools. 
   // mainWindow.webContents.openDevTools()
 
@@ -189,7 +228,6 @@ function createMainWindow(): void {
 
 // Create and set aboutModelWindow properties, default session and event listeners
 function createAboutModelWindow(): void {
-  const primaryDisplay = screen.getPrimaryDisplay();
   // Create the browser about modal window based on the screen primaryDisplay size
   aboutModalWindow = new BrowserWindow({
     width: primaryDisplay.size.width/4.7,
@@ -242,6 +280,8 @@ function createAboutModelWindow(): void {
 // This method will be called when Electron has finished 
 // initialization and is ready to create browser windows. 
 app.on('ready', function() {
+  // Get primaryDisplay for later get its properties, as width and height
+  primaryDisplay = screen.getPrimaryDisplay()
   createMainWindow()
   createAboutModelWindow()
 })
@@ -425,5 +465,21 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
         accelerator: 'CommandOrControl+U'
       }
     ]
+  }
+]
+
+const menuItemConstructorOptionsArrayWebSiteWindow: MenuItemConstructorOptions[] = [
+  {
+    role: 'editMenu'
+  },
+  {
+    role: 'viewMenu',
+  },
+  {
+    role: 'window',
+    submenu: [{
+      role: 'close',
+      accelerator: 'CommandOrControl+L'
+    }]
   }
 ]
