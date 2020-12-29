@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { BrowserWindowProxy, ipcRenderer } from 'electron'
+import { BrowserWindowProxy, ipcRenderer, webFrame } from 'electron'
 import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
@@ -27,6 +27,10 @@ const downloadLogoAnchor: HTMLAnchorElement = document.getElementById("downloadL
 const websiteDiv: HTMLDivElement = document.getElementById("websiteDiv") as HTMLDivElement
 const websiteImg: HTMLImageElement = document.getElementById("website") as HTMLImageElement
 let websiteWindow: BrowserWindowProxy | null
+const zoomInDiv: HTMLDivElement = document.getElementById("zoomInDiv") as HTMLDivElement
+const zoomOutDiv: HTMLDivElement = document.getElementById("zoomOutDiv") as HTMLDivElement
+const zoomInImg: HTMLImageElement = document.getElementById("zoomIn") as HTMLImageElement
+const zoomOutImg: HTMLImageElement = document.getElementById("zoomOut") as HTMLImageElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -82,7 +86,7 @@ function setTheme(themeType: string){
             anchor.style.color = "black"
         })
         whiteThemeDiv.style.display = "none"
-        blackThemeDiv.style.display = "inline-block"
+        blackThemeDiv.style.display = "table-cell"
     } else{
         body.style.backgroundColor = "black"
         body.style.color = "white"
@@ -91,7 +95,7 @@ function setTheme(themeType: string){
             anchor.style.color = "white"
         })
         blackThemeDiv.style.display = "none"
-        whiteThemeDiv.style.display = "inline-block"
+        whiteThemeDiv.style.display = "table-cell"
     }
 }
 getRatesButton.onclick = function() {
@@ -176,6 +180,12 @@ websiteImg.onclick = function(){
         }, 1000)
     }
 }
+zoomInImg.onclick = function(){
+    webFrame.setZoomFactor(webFrame.getZoomFactor()*1.1)
+}
+zoomOutImg.onclick = function(){
+    webFrame.setZoomFactor(webFrame.getZoomFactor()/1.1)
+}
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
 }
@@ -211,6 +221,18 @@ websiteDiv.onpointerover = function(){
 }
 websiteDiv.onpointerout = function(){
     websiteDiv.style.backgroundColor = ""
+}
+zoomInDiv.onpointerover = function(){
+    zoomInDiv.style.backgroundColor = "greenyellow"
+}
+zoomInDiv.onpointerout = function(){
+    zoomInDiv.style.backgroundColor = ""
+}
+zoomOutDiv.onpointerover = function(){
+    zoomOutDiv.style.backgroundColor = "greenyellow"
+}
+zoomOutDiv.onpointerout = function(){
+    zoomOutDiv.style.backgroundColor = ""
 }
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {

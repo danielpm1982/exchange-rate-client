@@ -86,10 +86,15 @@ footer.leftAligned{
 }
 nav#bottomNavBar{
     display: table;
-    margin: 1em auto 1em auto;
+    border-collapse: separate;
+    border-spacing: 1em 0.5em;
+    margin: 0.5em auto 0.5em auto;
+}
+div.tableRow{
+    display: table-row;
 }
 div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv,
-    div#websiteDiv{
+    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv {
     display: table-cell;
     width: 80px;
     height: 80px;
@@ -135,6 +140,17 @@ img#home{
 img#website{
     width: 5em;
 }
+img#zoomIn, img#zoomOut{
+    width: 3em;
+}
+img#zoomIn{
+    position: relative;
+    top: 0.7em;
+}
+img#zoomOut{
+    position: relative;
+    top: 0.4em;
+}
 .unclickable{
     pointer-events: none;
 }
@@ -143,7 +159,7 @@ img{
     -moz-user-select: none;
 }
 div#form{
-    margin-top: -2em;
+    margin-top: -3em;
 }
 /* article#resultPrintFormat{
     white-space: pre-line;

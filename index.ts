@@ -7,13 +7,12 @@ const path = require('path')
 import ConversionRatesInterface from './app/ConversionRatesInterface'
 import printOptions from './app/printOptions'
 
-// Keep a global reference of the window and tray object,
-// if you don't, the window will be closed automatically 
+// Keep a global reference of the below objects,
+// if you don't, they may be closed automatically 
 // when the JavaScript object is garbage collected. 
 let mainWindow: Electron.BrowserWindow | null
 let aboutModalWindow: Electron.BrowserWindow | null
 let tray: Electron.Tray | null
-
 let primaryDisplay: Display
 
 // ******************************************************************************************
