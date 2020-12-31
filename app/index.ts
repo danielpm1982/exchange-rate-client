@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { BrowserWindowProxy, ipcRenderer, webFrame } from 'electron'
+import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer } from 'electron'
 import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
@@ -31,6 +31,8 @@ const zoomInDiv: HTMLDivElement = document.getElementById("zoomInDiv") as HTMLDi
 const zoomOutDiv: HTMLDivElement = document.getElementById("zoomOutDiv") as HTMLDivElement
 const zoomInImg: HTMLImageElement = document.getElementById("zoomIn") as HTMLImageElement
 const zoomOutImg: HTMLImageElement = document.getElementById("zoomOut") as HTMLImageElement
+const screenCaptureDiv: HTMLDivElement = document.getElementById("screenCaptureDiv") as HTMLDivElement
+const screenCaptureImg: HTMLImageElement = document.getElementById("screenCapture") as HTMLImageElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -186,6 +188,19 @@ zoomInImg.onclick = function(){
 zoomOutImg.onclick = function(){
     webFrame.setZoomFactor(webFrame.getZoomFactor()/1.1)
 }
+screenCaptureImg.onclick = function(){
+    desktopCapturer.getSources({types: ['screen'], thumbnailSize: {width: 1920, height: 1080}})
+    .then(async sources => {
+        const fileBuffer = sources[0].thumbnail.toPNG()
+        ipcRenderer.send("saveScreenCapture", fileBuffer)
+    })
+    .catch(error => {
+        alert(error)
+    })
+}
+ipcRenderer.on('screenCaptureFromMain', () => {
+    screenCaptureImg.click()
+})
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
 }
@@ -233,6 +248,12 @@ zoomOutDiv.onpointerover = function(){
 }
 zoomOutDiv.onpointerout = function(){
     zoomOutDiv.style.backgroundColor = ""
+}
+screenCaptureDiv.onpointerover = function(){
+    screenCaptureDiv.style.backgroundColor = "greenyellow"
+}
+screenCaptureDiv.onpointerout = function(){
+    screenCaptureDiv.style.backgroundColor = ""
 }
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {

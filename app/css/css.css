@@ -94,7 +94,7 @@ div.tableRow{
     display: table-row;
 }
 div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv,
-    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv {
+    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv, div#screenCaptureDiv {
     display: table-cell;
     width: 80px;
     height: 80px;
@@ -150,6 +150,11 @@ img#zoomIn{
 img#zoomOut{
     position: relative;
     top: 0.4em;
+}
+img#screenCapture{
+    width: 3em;
+    position: relative;
+    top: 0.5em;
 }
 .unclickable{
     pointer-events: none;

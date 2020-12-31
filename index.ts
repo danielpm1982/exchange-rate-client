@@ -298,7 +298,7 @@ app.on('window-all-closed', function()
 })
 
 // ******************************************************************************************
-// ipcMain event listeners setting (listeners to the renderer processes events):
+// ipcMain event listeners settings (listeners to the renderer processes events):
 // ******************************************************************************************
 
 ipcMain.on("printFromIndex", (_event: Event, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
@@ -371,6 +371,35 @@ ipcMain.on("printToPDFFromIndex", (_event: Event, ratesResult: string) => {
   })
 })
 
+ipcMain.on("saveScreenCapture", (_event: Event, fileBuffer: Buffer) => {
+  const date = new Date()
+  const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
+  const filePath = path.join(app.getPath("desktop"), "exchangeRate-"+dateString+".png")
+  fs.writeFile(filePath, fileBuffer, (error:Error) => {
+    if(error){
+      new Notification({
+        title: 'Error saving captured screen !',
+        body: error.message
+      }).show()
+      dialog.showErrorBox(
+        'Error saving captured screen !',
+        error.message
+      )
+    } else{
+      new Notification({
+        title: 'Screen captured successfully !',
+        body: "PNG file saved at: "+filePath+" ."
+      }).show()
+      dialog.showMessageBox(mainWindow!, {
+        type: "info",
+        buttons: ["OK"],
+        title: 'Screen captured successfully !',
+        message: "PNG file saved at: "+filePath+" ."
+      })
+    }
+  })
+})
+
 ipcMain.on("/index", (_event: Event) => {
   mainWindow?.webContents.loadFile("app/index.html")
 })
@@ -396,6 +425,13 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
         accelerator: 'CommandOrControl+Shift+P',
         click: () => {
           mainWindow?.webContents.send("printToPDFFromMain")
+        }
+      },
+      {
+        label: 'ScreenCapture',
+        accelerator: 'CommandOrControl+Shift+E',
+        click: () => {
+          mainWindow?.webContents.send("screenCaptureFromMain")
         }
       },
       {
