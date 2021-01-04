@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
 import { MenuItemConstructorOptions, powerMonitor, screen } from 'electron'
-import { Display } from 'electron/main'
+import { Display, IpcMainEvent } from 'electron/main'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
@@ -140,7 +140,7 @@ function createMainWindow(): void {
     newWindow.loadURL(url)
     const websiteMenu = Menu.buildFromTemplate(menuItemConstructorOptionsArrayWebSiteWindow)
     newWindow.setMenu(websiteMenu)
-    newWindow.webContents.on('context-menu', (e: Event) => {
+    newWindow.webContents.on('context-menu', (_event: Event) => {
       websiteMenu.popup()
     })
     newWindow.on("ready-to-show", () => {
@@ -159,8 +159,8 @@ function createMainWindow(): void {
   // in the 'window-all-closed' event listener, set above, before the app quits, for not affecting
   // other applications. This restriction is merely for demonstrating purposes, not a real feature 
   // for this app. It can be simply commented out for allowing normal default closing.
-  mainWindow.on("close", function(e: Event){
-    e.preventDefault()
+  mainWindow.on("close", function(event: Event){
+    event.preventDefault()
     dialog.showMessageBox(mainWindow!, {
       type: "warning",
       buttons: ["OK"],
@@ -188,7 +188,7 @@ function createMainWindow(): void {
   // (right-button clicked event). Also create the app Tray and set the same menu as the tray menu.
   const menu = Menu.buildFromTemplate(menuItemConstructorOptionsArray)
   mainWindow.setMenu(menu)
-  mainWindow.webContents.on('context-menu', (e: Event) => {
+  mainWindow.webContents.on('context-menu', (_event: Event) => {
     menu.popup()
   })
   const pathTotrayIcon = path.join(__dirname, "app", "icon", "iconLinux.png") as string
@@ -202,7 +202,7 @@ function createMainWindow(): void {
   // current rate results (if any) on suspending and reset the app defaults on resuming
   powerMonitor.on('suspend', () => {
     mainWindow?.webContents.send("rateResultStatusRequestFromMain")
-    ipcMain.once('rateResultStatusResponseFromIndex', (_e: Event, response: boolean) => {
+    ipcMain.once('rateResultStatusResponseFromIndex', (_event: IpcMainEvent, response: boolean) => {
       //if there are current rate results, print them to a pdf file before suspending
       if(response){
         mainWindow?.webContents.send("printToPDFFromMain")
@@ -255,7 +255,7 @@ function createAboutModelWindow(): void {
   })
 
   // close aboutModalWindow when a click event happens at the renderer or timeout is reached
-  ipcMain.on('close-about-window', (e: Event) => {
+  ipcMain.on('close-about-window', (_event: IpcMainEvent) => {
     aboutModalWindow?.close()
     mainWindow?.setOpacity(1) //opacity only works on windows and iOS, not on linux
   })
@@ -301,7 +301,7 @@ app.on('window-all-closed', function()
 // ipcMain event listeners settings (listeners to the renderer processes events):
 // ******************************************************************************************
 
-ipcMain.on("printFromIndex", (_event: Event, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
+ipcMain.on("printFromIndex", (_event: IpcMainEvent, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
   // eventually process ratesResult at the main process side, then change the
   // mainWindow webContents file to indexPrint.html, send back the ratesResult 
   // to the renderer side of this window and print that to the default available 
@@ -334,7 +334,7 @@ ipcMain.on("printFromIndex", (_event: Event, ratesResultObject: {lastUpdated: st
   })
 })
 
-ipcMain.on("printToPDFFromIndex", (_event: Event, ratesResult: string) => {
+ipcMain.on("printToPDFFromIndex", (_event: IpcMainEvent, ratesResult: string) => {
   // eventually process ratesResult at the main process side, then change the
   // mainwindow webContents file to indexPrint.html, send back the ratesResult 
   // to the renderer side of this window and print that to a pdf file at the desktop.
@@ -371,7 +371,7 @@ ipcMain.on("printToPDFFromIndex", (_event: Event, ratesResult: string) => {
   })
 })
 
-ipcMain.on("saveScreenCapture", (_event: Event, fileBuffer: Buffer) => {
+ipcMain.on("saveScreenCapture", (_event: IpcMainEvent, fileBuffer: Buffer) => {
   const date = new Date()
   const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
   const filePath = path.join(app.getPath("desktop"), "exchangeRate-"+dateString+".png")
@@ -400,7 +400,7 @@ ipcMain.on("saveScreenCapture", (_event: Event, fileBuffer: Buffer) => {
   })
 })
 
-ipcMain.on("/index", (_event: Event) => {
+ipcMain.on("/index", (_event: IpcMainEvent) => {
   mainWindow?.webContents.loadFile("app/index.html")
 })
 
