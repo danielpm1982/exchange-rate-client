@@ -202,10 +202,12 @@ function createMainWindow(): void {
   // current rate results (if any) on suspending and reset the app defaults on resuming
   powerMonitor.on('suspend', () => {
     mainWindow?.webContents.send("rateResultStatusRequestFromMain")
-    ipcMain.once('rateResultStatusResponseFromIndex', (_event: IpcMainEvent, response: boolean) => {
+    ipcMain.once('rateResultStatusResponseFromIndex', (event: IpcMainEvent, response: boolean) => {
       //if there are current rate results, print them to a pdf file before suspending
       if(response){
-        mainWindow?.webContents.send("printToPDFFromMain")
+        // mainWindow?.webContents.send("printToPDFFromMain") //or
+        // event.sender.send("printToPDFFromMain") //or
+        event.reply("printToPDFFromMain")
       }
     })
   })
@@ -301,13 +303,15 @@ app.on('window-all-closed', function()
 // ipcMain event listeners settings (listeners to the renderer processes events):
 // ******************************************************************************************
 
-ipcMain.on("printFromIndex", (_event: IpcMainEvent, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
-  // eventually process ratesResult at the main process side, then change the
-  // mainWindow webContents file to indexPrint.html, send back the ratesResult 
-  // to the renderer side of this window and print that to the default available 
-  // printer. If none is available show a notification and a dialog message modal box.
+ipcMain.on("printFromIndex", (event: IpcMainEvent, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
+  // eventually process ratesResultObject at the main process side, then change mainWindow webContents file 
+  // to indexPrint.html, sending back a message to this same window, with the changed ratesResultObject, for 
+  // printing that to the default available printer. If none is available show a notification and a dialog 
+  // message modal box.
   mainWindow?.webContents.loadFile("app/indexPrint.html").then( () => {
-    mainWindow?.webContents.send("showRatesResult", ratesResultObject)
+    // mainWindow?.webContents.send("showRatesResult", ratesResultObject) //or
+    // event.sender.send("showRatesResult", ratesResultObject) //or
+    event.reply("showRatesResult", ratesResultObject)
     mainWindow?.webContents.print(printOptions as Electron.WebContentsPrintOptions, (success: boolean, failureReason: string) => { 
       if (!success){
         new Notification({
@@ -334,14 +338,18 @@ ipcMain.on("printFromIndex", (_event: IpcMainEvent, ratesResultObject: {lastUpda
   })
 })
 
-ipcMain.on("printToPDFFromIndex", (_event: IpcMainEvent, ratesResult: string) => {
-  // eventually process ratesResult at the main process side, then change the
-  // mainwindow webContents file to indexPrint.html, send back the ratesResult 
-  // to the renderer side of this window and print that to a pdf file at the desktop.
+ipcMain.on("printToPDFFromIndex", (event: IpcMainEvent, ratesResultObject: {lastUpdated: string, currencyCode: string, ratesResult: ConversionRatesInterface}) => {
+  // eventually process ratesResultObject at the main process side, then change mainWindow webContents file 
+  // to indexPrint.html, sending back a message to this same window, with the changed ratesResultObject, for 
+  // printing that to a pdf file at the desktop.
   mainWindow?.webContents.loadFile("app/indexPrint.html").then( () => {
-    mainWindow?.webContents.send("showRatesResult", ratesResult)
+    // mainWindow?.webContents.send("showRatesResult", ratesResultObject) //or
+    // event.sender.send("showRatesResult", ratesResultObject) //or
+    event.reply("showRatesResult", ratesResultObject)
     mainWindow?.webContents.printToPDF({}).then( data => {
-      const pdfPath = path.join(app.getPath("desktop"), "rate-results.pdf")
+      const date = new Date()
+      const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
+      const pdfPath = path.join(app.getPath("desktop"), "rate-results-"+dateString+".pdf")
       fs.writeFile(pdfPath, data, (error:Error) => {
         if(error){
           throw error
