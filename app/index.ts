@@ -190,9 +190,12 @@ zoomOutImg.onclick = function(){
 }
 screenCaptureImg.onclick = function(){
     desktopCapturer.getSources({types: ['screen'], thumbnailSize: {width: 1920, height: 1080}})
-    .then(async sources => {
+    .then(sources => {
         const fileBuffer = sources[0].thumbnail.toPNG()
-        ipcRenderer.send("saveScreenCapture", fileBuffer)
+        const filePath = ipcRenderer.sendSync("saveScreenCapture", fileBuffer)
+        if(filePath){
+            window.open("file://"+filePath)
+        }
     })
     .catch(error => {
         alert(error)

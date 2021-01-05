@@ -379,12 +379,13 @@ ipcMain.on("printToPDFFromIndex", (event: IpcMainEvent, ratesResultObject: {last
   })
 })
 
-ipcMain.on("saveScreenCapture", (_event: IpcMainEvent, fileBuffer: Buffer) => {
+ipcMain.on("saveScreenCapture", (event: IpcMainEvent, fileBuffer: Buffer) => {
   const date = new Date()
   const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
   const filePath = path.join(app.getPath("desktop"), "exchangeRate-"+dateString+".png")
   fs.writeFile(filePath, fileBuffer, (error:Error) => {
     if(error){
+      event.returnValue = null
       new Notification({
         title: 'Error saving captured screen !',
         body: error.message
@@ -394,6 +395,7 @@ ipcMain.on("saveScreenCapture", (_event: IpcMainEvent, fileBuffer: Buffer) => {
         error.message
       )
     } else{
+      event.returnValue = filePath
       new Notification({
         title: 'Screen captured successfully !',
         body: "PNG file saved at: "+filePath+" ."
