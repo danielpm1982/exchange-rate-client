@@ -162,9 +162,9 @@ ipcRenderer.on("rateResultStatusRequestFromMain", (e: IpcRendererEvent) => {
 })
 websiteImg.onclick = function(){
     if(!websiteWindow){
-        websiteWindow = window.open("http://danielpm1982.com") as unknown as BrowserWindowProxy
-        const stringToEval = "const h1NewElement = document.createElement('h1'); h1NewElement.textContent = '(Referred from'; const h1NewElement2 = document.createElement('h1'); h1NewElement2.textContent = 'Exchange Rate Client App)'; document.getElementById('domainText').parentElement.append(document.createElement('br')); document.getElementById('domainText').parentElement.appendChild(h1NewElement);document.getElementById('domainText').parentElement.append(document.createElement('br')); document.getElementById('domainText').parentElement.appendChild(h1NewElement2);"
-        websiteWindow.eval(stringToEval)
+        websiteWindow = window.open("https://danielpm1982.com/") as unknown as BrowserWindowProxy
+        // const stringToEval = "const h3NewElement = document.createElement('h3'); h3NewElement.textContent = '(Referred from Exchange Rate Client App)'; document.getElementById('headerMainPage').appendChild(h3NewElement);"
+        // websiteWindow.eval(stringToEval)    
         websiteImg.title = "close website Window"
         websiteImg.alt = "close website Window"
         websiteImg.className = "unclickable"
@@ -172,16 +172,22 @@ websiteImg.onclick = function(){
             websiteImg.className = ""
         }, 1000)
     } else{
-        websiteWindow.close()
-        websiteWindow = null
-        websiteImg.title = "go to danielpm1982.com"
-        websiteImg.alt = "go to danielpm1982.com"
-        websiteImg.className = "unclickable"
-        setTimeout(() => {
-            websiteImg.className = ""
-        }, 1000)
+        closeWebSiteWindowAndResetWebSiteImg()
     }
 }
+function closeWebSiteWindowAndResetWebSiteImg(){
+    websiteWindow?.close()
+    websiteWindow = null
+    websiteImg.title = "go to danielpm1982.com"
+    websiteImg.alt = "go to danielpm1982.com"
+    websiteImg.className = "unclickable"
+    setTimeout(() => {
+        websiteImg.className = ""
+    }, 1000)
+}
+ipcRenderer.on("closeWebSiteWindowAndResetWebSiteImg", () => {
+    closeWebSiteWindowAndResetWebSiteImg()
+})
 zoomInImg.onclick = function(){
     webFrame.setZoomFactor(webFrame.getZoomFactor()*1.1)
 }

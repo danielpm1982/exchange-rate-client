@@ -15,7 +15,14 @@ ipcRenderer.on('showRatesResult', (_event: Event, ratesResultObject: {lastUpdate
     })
 })
 homeImg.onclick = function() {
-    ipcRenderer.send("/index")
+    const resourceChannel = "/index"
+    ipcRenderer.invoke(resourceChannel)
+    .then((resourcePath) => {
+        alert("Resource '"+resourceChannel+"' at '"+resourcePath+"' successfully loaded !")
+    })
+    .catch((error: Error) => {
+        alert("Error loading resource: '"+resourceChannel+"' via IPC !")
+    })
 }
 homeDiv.onpointerover = function(){
     homeDiv.style.backgroundColor = "greenyellow"

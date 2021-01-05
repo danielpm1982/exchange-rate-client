@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
 import { MenuItemConstructorOptions, powerMonitor, screen } from 'electron'
-import { Display, IpcMainEvent } from 'electron/main'
+import { Display, IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
@@ -146,6 +146,14 @@ function createMainWindow(): void {
     newWindow.on("ready-to-show", () => {
       newWindow.show()
       // newWindow.maximize()
+    })
+    // if the url is 'https://danielpm1982.com/', preventDefault() and send an IPCMain message for 
+    // custom closing from the renderer process. For other urls proceed with standard closing
+    newWindow.on("close", (event: Event) => {
+      if(url === "https://danielpm1982.com/"){
+        event.preventDefault()
+        mainWindow!.webContents.send("closeWebSiteWindowAndResetWebSiteImg")
+      }
     })
     event.newGuest = newWindow
   })
@@ -410,8 +418,9 @@ ipcMain.on("saveScreenCapture", (event: IpcMainEvent, fileBuffer: Buffer) => {
   })
 })
 
-ipcMain.on("/index", (_event: IpcMainEvent) => {
+ipcMain.handle("/index", (_event: IpcMainInvokeEvent) => {
   mainWindow?.webContents.loadFile("app/index.html")
+  return "app/index.html"
 })
 
 // ******************************************************************************************
