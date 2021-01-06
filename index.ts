@@ -512,6 +512,13 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
     role: 'help',
     submenu: [
       {
+        label: 'Process and System Info',
+        click: () => {
+          mainWindow?.webContents.send("processFromMain")
+        },
+        accelerator: 'CommandOrControl+I'
+      },
+      {
         label: 'About',
         click: () => {
           createAboutModelWindow()

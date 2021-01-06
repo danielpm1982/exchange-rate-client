@@ -33,6 +33,8 @@ const zoomInImg: HTMLImageElement = document.getElementById("zoomIn") as HTMLIma
 const zoomOutImg: HTMLImageElement = document.getElementById("zoomOut") as HTMLImageElement
 const screenCaptureDiv: HTMLDivElement = document.getElementById("screenCaptureDiv") as HTMLDivElement
 const screenCaptureImg: HTMLImageElement = document.getElementById("screenCapture") as HTMLImageElement
+const processDiv: HTMLDivElement = document.getElementById("processDiv") as HTMLDivElement
+const processImg: HTMLImageElement = document.getElementById("process") as HTMLImageElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -114,13 +116,13 @@ whiteThemeImg.onclick = function(){
     setTheme("whiteTheme")
 }
 ipcRenderer.on('whiteThemeFromMain', () => {
-    setTheme("whiteTheme")
+    whiteThemeImg.click()
 })
 blackThemeImg.onclick = function(){
     setTheme("blackTheme")
 }
 ipcRenderer.on('blackThemeFromMain', () => {
-    setTheme("blackTheme")
+    blackThemeImg.click()
 })
 printImg.onclick = function() {
     if(lastUpdated && currencyCode && ratesResult){
@@ -130,11 +132,7 @@ printImg.onclick = function() {
     }
 }
 ipcRenderer.on("printFromMain", () => {
-    if(lastUpdated && currencyCode && ratesResult){
-        ipcRenderer.send("printFromIndex", {lastUpdated, currencyCode, ratesResult})
-    } else{
-        alert("First select a currency and get the rates, in order to print the result !")
-    }
+    printImg.click()
 })
 printToPDFImg.onclick = function() {
     if(lastUpdated && currencyCode && ratesResult){
@@ -144,11 +142,7 @@ printToPDFImg.onclick = function() {
     }
 }
 ipcRenderer.on("printToPDFFromMain", () => {
-    if(lastUpdated && currencyCode && ratesResult){
-        ipcRenderer.send("printToPDFFromIndex", {lastUpdated, currencyCode, ratesResult})
-    } else{
-        alert("First select a currency and get the rates, in order to print the result to a pdf file !")
-    }
+    printToPDFImg.click()
 })
 ipcRenderer.on("downloadLogoFromMain", () => {
     downloadLogoAnchor.click()
@@ -210,6 +204,59 @@ screenCaptureImg.onclick = function(){
 ipcRenderer.on('screenCaptureFromMain', () => {
     screenCaptureImg.click()
 })
+processImg.onclick = async function(){
+    let processMemoryInfoString: string = ""
+    await process.getProcessMemoryInfo().then(memoryInfo => processMemoryInfoString = "private: "+memoryInfo.private+" residentSet: "+memoryInfo.residentSet+" shared: "+memoryInfo.shared)+"\n"+
+    alert(
+        "PROCESS AND SYSTEM INFO:\n\n"+
+        "CPU usage by the system: "+process.cpuUsage().system+"\n"+
+        "CPU usage by the user: "+process.cpuUsage().user+"\n"+
+        "Execution folder (cwd):\n"+process.cwd()+"\n"+
+        "IPV6: "+process.features.ipv6+"\n"+
+        "TLS: "+process.features.tls+"\n"+
+        "Blink memory allocated: "+process.getBlinkMemoryInfo().allocated+"\n"+
+        "Blink memory total: "+process.getBlinkMemoryInfo().total+"\n"+
+        "CPU usage idleWakeupsPerSecond: "+process.getCPUUsage().idleWakeupsPerSecond+"\n"+
+        "CPU usage percentage (%): "+process.getCPUUsage().percentCPUUsage+"\n"+
+        "Creation time:\n"+new Date(process.getCreationTime()!)+"\n"+
+        "Heap does zap garbage: "+process.getHeapStatistics().doesZapGarbage+"\n"+
+        "Heap size limit: "+process.getHeapStatistics().heapSizeLimit+"\n"+
+        "Heap malloced memory: "+process.getHeapStatistics().mallocedMemory+"\n"+
+        "Heap peak malloced memory: "+process.getHeapStatistics().peakMallocedMemory+"\n"+
+        "Heap total available size: "+process.getHeapStatistics().totalAvailableSize+"\n"+
+        "Heap total size: "+process.getHeapStatistics().totalHeapSize+"\n"+
+        "Heap total size executable: "+process.getHeapStatistics().totalHeapSizeExecutable+"\n"+
+        "Heap total physical size: "+process.getHeapStatistics().totalPhysicalSize+"\n"+
+        "Heap used size: "+process.getHeapStatistics().usedHeapSize+"\n"+
+        "Process memory info:\n"+processMemoryInfoString+"\n"+
+        "System memory info free: "+process.getSystemMemoryInfo().free+"\n"+
+        "System memory info swap free: "+process.getSystemMemoryInfo().swapFree+"\n"+
+        "System memory info swap total: "+process.getSystemMemoryInfo().swapTotal+"\n"+
+        "System memory info total: "+process.getSystemMemoryInfo().total+"\n"+
+        "System version: "+process.getSystemVersion()+"\n"+
+        "Memory usage external: "+process.memoryUsage().external+"\n"+
+        "Memory usage heapTotal: "+process.memoryUsage().heapTotal+"\n"+
+        "Memory usage heapUsed: "+process.memoryUsage().heapUsed+"\n"+
+        "Memory usage rss: "+process.memoryUsage().rss+"\n"+
+        "Process title: "+process.title+"\n"+
+        "Process type: "+process.type+"\n"+
+        "Process uptime: "+process.uptime()+"\n"+
+        "Process versions ares: "+process.versions.ares+"\n"+
+        "Process versions chrome: "+process.versions.chrome+"\n"+
+        "Process versions electron: "+process.versions.electron+"\n"+
+        "Process versions http_parser: "+process.versions.http_parser+"\n"+
+        "Process versions modules: "+process.versions.modules+"\n"+
+        "Process versions node: "+process.versions.node+"\n"+
+        "Process versions openssl: "+process.versions.openssl+"\n"+
+        "Process versions uv: "+process.versions.uv+"\n"+
+        "Process versions v8: "+process.versions.v8+"\n"+
+        "Process versions zlib: "+process.versions.zlib+"\n\n"+
+        "* memory units in Kilobytes (KB)"
+    )
+}
+ipcRenderer.on('processFromMain', () => {
+    processImg.click()
+})
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
 }
@@ -263,6 +310,12 @@ screenCaptureDiv.onpointerover = function(){
 }
 screenCaptureDiv.onpointerout = function(){
     screenCaptureDiv.style.backgroundColor = ""
+}
+processDiv.onpointerover = function(){
+    processDiv.style.backgroundColor = "greenyellow"
+}
+processDiv.onpointerout = function(){
+    processDiv.style.backgroundColor = ""
 }
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {

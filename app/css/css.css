@@ -94,7 +94,7 @@ div.tableRow{
     display: table-row;
 }
 div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv,
-    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv, div#screenCaptureDiv {
+    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv, div#screenCaptureDiv, div#processDiv {
     display: table-cell;
     width: 80px;
     height: 80px;
@@ -155,6 +155,11 @@ img#screenCapture{
     width: 3em;
     position: relative;
     top: 0.5em;
+}
+img#process{
+    width: 3em;
+    position: relative;
+    top: 0.6em;
 }
 .unclickable{
     pointer-events: none;
