@@ -35,6 +35,8 @@ const screenCaptureDiv: HTMLDivElement = document.getElementById("screenCaptureD
 const screenCaptureImg: HTMLImageElement = document.getElementById("screenCapture") as HTMLImageElement
 const processDiv: HTMLDivElement = document.getElementById("processDiv") as HTMLDivElement
 const processImg: HTMLImageElement = document.getElementById("process") as HTMLImageElement
+const crashDiv: HTMLDivElement = document.getElementById("crashDiv") as HTMLDivElement
+const crashImg: HTMLImageElement = document.getElementById("crash") as HTMLImageElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -254,6 +256,9 @@ processImg.onclick = async function(){
         "* memory units in Kilobytes (KB)"
     )
 }
+crashImg.onclick = function(){
+    process.crash()
+}
 ipcRenderer.on('processFromMain', () => {
     processImg.click()
 })
@@ -316,6 +321,12 @@ processDiv.onpointerover = function(){
 }
 processDiv.onpointerout = function(){
     processDiv.style.backgroundColor = ""
+}
+crashDiv.onpointerover = function(){
+    crashDiv.style.backgroundColor = "greenyellow"
+}
+crashDiv.onpointerout = function(){
+    crashDiv.style.backgroundColor = ""
 }
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {

@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
 import { MenuItemConstructorOptions, powerMonitor, screen } from 'electron'
-import { Display, IpcMainEvent, IpcMainInvokeEvent } from 'electron/main'
+import { Display, IpcMainEvent, IpcMainInvokeEvent, RenderProcessGoneDetails } from 'electron/main'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
 const path = require('path')
@@ -188,6 +188,23 @@ function createMainWindow(): void {
     // app supports multi windows, this is the time 
     // when you should delete the corresponding element. 
     mainWindow = null
+  })
+
+  // Reload mainWindow webContents on mainWindow renderer process crash
+  mainWindow.webContents.on("render-process-gone", (_event: Event, details: RenderProcessGoneDetails) => {
+    setTimeout(() => {
+      mainWindow?.reload()
+      new Notification({
+        title: 'Exchange Rate Client App '+details.reason+" !",
+        body: "Main window renderer process gone. Reason: "+details.reason+".\n\nMain window webContents reloaded !\n\nMain window renderer process restarted !"
+      }).show()
+      dialog.showMessageBox(mainWindow!, {
+        type: "error",
+        buttons: ["OK"],
+        title: 'Exchange Rate Client App '+details.reason+" !",
+        message: "Main window renderer process gone. Reason: "+details.reason+".\n\nMain window webContents reloaded !\n\nMain window renderer process restarted !"
+      })
+    }, 1000);
   })
 
   // Create and set a menu to the mainWindow based on the MenuItemConstructorOptions array 
