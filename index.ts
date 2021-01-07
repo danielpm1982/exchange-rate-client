@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray, nativeImage} = require('electron')
 import { MenuItemConstructorOptions, powerMonitor, screen, shell } from 'electron'
 import { Display, IpcMainEvent, IpcMainInvokeEvent, RenderProcessGoneDetails } from 'electron/main'
 const windowStateKeeper = require('electron-window-state')
@@ -63,6 +63,7 @@ function createMainWindow(): void {
           title: state.charAt(0).toUpperCase()+state.slice(1),
           message: 'Download successfull ! File downloaded to path\n'+pathToSave
         })
+        shell.openPath(pathToSave)
       } else {
         console.log(`Download failed: ${state}`)
         new Notification({
@@ -217,7 +218,9 @@ function createMainWindow(): void {
     menu.popup()
   })
   const pathTotrayIcon = path.join(__dirname, "app", "icon", "iconLinux.png") as string
-  tray = new Tray(pathTotrayIcon)
+  const trayIconNativeImage = nativeImage.createFromPath(pathTotrayIcon)
+  // tray = new Tray(pathTotrayIcon) //or
+  tray = new Tray(trayIconNativeImage)
   tray.setToolTip('Exchange Rate Client')
   tray.setContextMenu(menu)
   tray.setIgnoreDoubleClickEvents(true)
@@ -464,15 +467,35 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
         }
       },
       {
+        type: 'separator'
+      },
+      {
+        label: 'SendRateResultsToClipboard',
+        accelerator: 'CommandOrControl+Shift+S',
+        click: () => {
+          mainWindow?.webContents.send("sendRateResultsToClipboardFromMain")
+        }
+      },
+      {
+        label: 'ClearClipboard',
+        accelerator: 'CommandOrControl+Shift+L',
+        click: () => {
+          mainWindow?.webContents.send("clearClipboardFromMain")
+        }
+      },
+      {
+        type: 'separator'
+      },
+      {
         label: 'ScreenCapture',
-        accelerator: 'CommandOrControl+Shift+E',
+        accelerator: 'CommandOrControl+T',
         click: () => {
           mainWindow?.webContents.send("screenCaptureFromMain")
         }
       },
       {
         label: 'Download Logo',
-        accelerator: 'CommandOrControl+Shift+L',
+        accelerator: 'CommandOrControl+G',
         click: () => {
           mainWindow?.webContents.send("downloadLogoFromMain")
         }
@@ -486,7 +509,7 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
     ]
   },
   {
-    role: 'editMenu'
+    role: 'editMenu',
   },
   {
     role: 'viewMenu',
@@ -501,13 +524,15 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
             label: 'White Theme',
             click: () => {
               mainWindow?.webContents.send('whiteThemeFromMain')
-            }
+            },
+            accelerator: 'CommandOrControl+Shift+W',
           },
           {
             label: 'Black Theme',
             click: () => {
               mainWindow?.webContents.send('blackThemeFromMain')
-            }
+            },
+            accelerator: 'CommandOrControl+Shift+B',
           }
         ]
       }
@@ -536,6 +561,9 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
         accelerator: 'CommandOrControl+I'
       },
       {
+        type: 'separator'
+      },
+      {
         label: 'Visit Website',
         click: () => {
           shell.openExternal("https://www.danielpm1982.com")
@@ -558,6 +586,9 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
         accelerator: 'CommandOrControl+E'
       },
       {
+        type: 'separator'
+      },
+      {
         label: 'About',
         click: () => {
           createAboutModelWindow()
@@ -570,7 +601,7 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
 
 const menuItemConstructorOptionsArrayWebSiteWindow: MenuItemConstructorOptions[] = [
   {
-    role: 'editMenu'
+    role: 'editMenu',
   },
   {
     role: 'viewMenu',

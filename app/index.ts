@@ -1,11 +1,12 @@
 import axios from 'axios'
-import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer, shell } from 'electron'
+import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer, shell, clipboard } from 'electron'
 import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
 const apiKey = "d0ef71289ff8ca5bc01d1b94"
 let currencyCode: string | null = null
 let ratesResult: ConversionRatesInterface | null = null
+let ratesResultFinalString: string | null = null
 let lastUpdated: string | null = null
 const currencyCodeSelect:HTMLSelectElement = document.getElementById("currencyCodeSelect")! as HTMLSelectElement
 const getRatesButton:HTMLButtonElement = document.getElementById("getRatesButton") as HTMLButtonElement
@@ -37,6 +38,8 @@ const processDiv: HTMLDivElement = document.getElementById("processDiv") as HTML
 const processImg: HTMLImageElement = document.getElementById("process") as HTMLImageElement
 const crashDiv: HTMLDivElement = document.getElementById("crashDiv") as HTMLDivElement
 const crashImg: HTMLImageElement = document.getElementById("crash") as HTMLImageElement
+const clipboardDiv: HTMLDivElement = document.getElementById("clipboardDiv") as HTMLDivElement
+const clipboardImg: HTMLImageElement = document.getElementById("clipboard") as HTMLImageElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -65,13 +68,13 @@ function getCurrencyExchangeRates(currencyCode:string): void{
 }
 function setTextAreaResult(timeLastUpdate: string | null, conversion_rates: ConversionRatesInterface | null){
     if(timeLastUpdate && conversion_rates){
-        let result: string = "Updated: "+timeLastUpdate+"\n\n"
+        ratesResultFinalString = "Updated: "+timeLastUpdate+"\n\n"
         const keyArray: string[] = Object.keys(conversion_rates)
         keyArray.forEach(key => {
-            result += "1 "+currencyCode+" = "+conversion_rates[key as keyof ConversionRatesInterface]+" "+key+"\n"
+            ratesResultFinalString += "1 "+currencyCode+" = "+conversion_rates[key as keyof ConversionRatesInterface]+" "+key+"\n"
         })
         resultTextArea.rows = 15
-        resultTextArea.value = result
+        resultTextArea.value = ratesResultFinalString
     } else{
         resultTextArea.rows = 2
         resultTextArea.value = ''
@@ -112,7 +115,9 @@ clearButton.onclick = function() {
     currencyCode = null
     lastUpdated = null
     ratesResult = null
+    ratesResultFinalString = null
     setTextAreaResult(lastUpdated, ratesResult)    
+    clearClipboard()
 }
 whiteThemeImg.onclick = function(){
     setTheme("whiteTheme")
@@ -260,11 +265,27 @@ processImg.onclick = async function(){
         "* memory units in Kilobytes (KB)"
     )
 }
+ipcRenderer.on('processFromMain', () => {
+    processImg.click()
+})
 crashImg.onclick = function(){
     process.crash()
 }
-ipcRenderer.on('processFromMain', () => {
-    processImg.click()
+clipboardImg.onclick = function(){
+    if(ratesResultFinalString){
+        clipboard.writeText(ratesResultFinalString)
+    } else{
+        alert("First select a currency and get the rates, in order to copy the result to the clipboard !")
+    }
+}
+ipcRenderer.on('sendRateResultsToClipboardFromMain', () => {
+    clipboardImg.click()
+})
+function clearClipboard(){
+    clipboard.clear()
+}
+ipcRenderer.on('clearClipboardFromMain', () => {
+    clearClipboard()
 })
 whiteThemeDiv.onpointerover = function(){
     whiteThemeDiv.style.backgroundColor = "greenyellow"
@@ -331,6 +352,12 @@ crashDiv.onpointerover = function(){
 }
 crashDiv.onpointerout = function(){
     crashDiv.style.backgroundColor = ""
+}
+clipboardDiv.onpointerover = function(){
+    clipboardDiv.style.backgroundColor = "greenyellow"
+}
+clipboardDiv.onpointerout = function(){
+    clipboardDiv.style.backgroundColor = ""
 }
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {

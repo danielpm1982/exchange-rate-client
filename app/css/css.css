@@ -12,12 +12,6 @@ body#about{
     user-select: none;
     -webkit-app-region: drag;
 }
-input[type='text']{
-    font-size: 1.5em;
-    padding: 0.5em;
-    margin-top: 0.5em;
-    width: 500px;
-}
 select{
     font-size: 1.2em;
     padding: 0.4em;
@@ -36,10 +30,6 @@ textarea{
     margin-top: 1em;
     width: 492px;
     font-weight: bold;
-}
-footer{
-    margin-top: 1.5em;
-    font-size: 1.1em;
 }
 span.leftSpan{
     color: greenyellow;
@@ -78,7 +68,7 @@ div.centralTextAbout{
 footer{
     font-size: 1.1em;
     margin-bottom: 0em;
-    margin-top: 2.5em;
+    margin-top: 2em;
 }
 footer.leftAligned{
     text-align: left;
@@ -88,29 +78,18 @@ nav#bottomNavBar{
     display: table;
     border-collapse: separate;
     border-spacing: 1em 0.5em;
-    margin: 0.5em auto 0.5em auto;
+    margin: 2em auto 0.5em auto;
+    width: 70%;
 }
 div.tableRow{
     display: table-row;
 }
 div#whiteThemeDiv, div#blackThemeDiv, div#printDiv, div#printToPDFDiv, div#logoExchangeRateAPIDiv,
-    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv, div#screenCaptureDiv, div#processDiv, div#crashDiv {
+    div#websiteDiv, div#zoomInDiv, div#zoomOutDiv, div#screenCaptureDiv, div#processDiv, div#crashDiv,
+    div#clipboardDiv {
     display: table-cell;
     width: 80px;
     height: 80px;
-}
-div#websiteDiv{
-    width: 130px;
-    position: relative;
-    left: -0.5em;
-}
-div#whiteThemeDiv, div#blackThemeDiv{
-    height: 100px;
-}
-div#homeDiv{
-    width: 5em;
-    height: 5em;
-    margin-top: 2em;
 }
 img#whiteTheme, img#blackTheme{
     width: 2em;
@@ -141,32 +120,38 @@ img#home{
 }
 img#website{
     width: 5em;
-}
-img#zoomIn, img#zoomOut{
-    width: 3em;
+    position: relative;
+    top: 0.3em;
 }
 img#zoomIn{
-    position: relative;
-    top: 0.7em;
-}
-img#zoomOut{
-    position: relative;
-    top: 0.4em;
-}
-img#screenCapture{
     width: 3em;
     position: relative;
     top: 0.5em;
 }
+img#zoomOut{
+    width: 3.1em;
+    position: relative;
+    top: 0.3em;
+}
+img#screenCapture{
+    width: 3.3em;
+    position: relative;
+    top: 0.4em;
+}
 img#process{
     width: 3em;
     position: relative;
-    top: 0.6em;
+    top: 0.4em;
 }
 img#crash{
     width: 4em;
     position: relative;
     top: 0.9em;
+}
+img#clipboard{
+    width: 4em;
+    position: relative;
+    top: 0.4em;
 }
 .unclickable{
     pointer-events: none;
