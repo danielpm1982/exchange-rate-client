@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer } from 'electron'
+import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer, shell } from 'electron'
 import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
@@ -196,7 +196,11 @@ screenCaptureImg.onclick = function(){
         const fileBuffer = sources[0].thumbnail.toPNG()
         const filePath = ipcRenderer.sendSync("saveScreenCapture", fileBuffer)
         if(filePath){
-            window.open("file://"+filePath)
+            // window.open("file://"+filePath)
+            shell.showItemInFolder(filePath)
+            shell.openPath(filePath).catch(error => {
+                alert("Error opening screenCapture file at: "+filePath+".\n\n"+error)
+            })
         }
     })
     .catch(error => {

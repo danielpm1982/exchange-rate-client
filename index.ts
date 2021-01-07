@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, session, globalShortcut, Notification, Menu, Tray } = require('electron')
-import { MenuItemConstructorOptions, powerMonitor, screen } from 'electron'
+import { MenuItemConstructorOptions, powerMonitor, screen, shell } from 'electron'
 import { Display, IpcMainEvent, IpcMainInvokeEvent, RenderProcessGoneDetails } from 'electron/main'
 const windowStateKeeper = require('electron-window-state')
 const fs = require('fs')
@@ -534,6 +534,28 @@ const menuItemConstructorOptionsArray: MenuItemConstructorOptions[] = [
           mainWindow?.webContents.send("processFromMain")
         },
         accelerator: 'CommandOrControl+I'
+      },
+      {
+        label: 'Visit Website',
+        click: () => {
+          shell.openExternal("https://www.danielpm1982.com")
+        },
+        accelerator: 'CommandOrControl+W'
+      },
+      {
+        label: 'Send Email',
+        click: () => {
+          shell.openExternal("mailto:danielpm1982.com@domainsbyproxy.com")
+          .catch(error => {
+            dialog.showMessageBox(mainWindow!, {
+              type: "error",
+              buttons: ["OK"],
+              title: 'Error sending email !',
+              message: "Could not send email to: mailto:danielpm1982.com@domainsbyproxy.com ."
+            })
+          })
+        },
+        accelerator: 'CommandOrControl+E'
       },
       {
         label: 'About',
