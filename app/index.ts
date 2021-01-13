@@ -40,6 +40,7 @@ const crashDiv: HTMLDivElement = document.getElementById("crashDiv") as HTMLDivE
 const crashImg: HTMLImageElement = document.getElementById("crash") as HTMLImageElement
 const clipboardDiv: HTMLDivElement = document.getElementById("clipboardDiv") as HTMLDivElement
 const clipboardImg: HTMLImageElement = document.getElementById("clipboard") as HTMLImageElement
+let gabTvImg: HTMLImageElement = document.getElementById("gabTV") as HTMLImageElement
 
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
@@ -359,6 +360,16 @@ clipboardDiv.onpointerover = function(){
 clipboardDiv.onpointerout = function(){
     clipboardDiv.style.backgroundColor = ""
 }
+ipcRenderer.on("updateGabTVImg", (_event: IpcRendererEvent, srcPath: string) => {
+    const temp: HTMLImageElement = document.createElement("img")
+    temp.src = srcPath
+    temp.alt = "gabTV"
+    temp.title = "go to Gab TV"
+    temp.style.width = "100%"
+    temp.style.height = "25em"
+    gabTvImg.parentElement!.replaceChild(temp, gabTvImg)
+    gabTvImg = temp
+})
 document.addEventListener("DOMContentLoaded", () => {
     conversionRatesKeys.forEach(key => {
         const option = document.createElement("OPTION") as HTMLOptionElement

@@ -14,6 +14,7 @@ let mainWindow: Electron.BrowserWindow | null
 let aboutModalWindow: Electron.BrowserWindow | null
 let tray: Electron.Tray | null
 let primaryDisplay: Display
+let offscreenWebContentsWindow: Electron.BrowserWindow | null
 
 // ******************************************************************************************
 // BrowserWindow instances creation and setting:
@@ -180,6 +181,7 @@ function createMainWindow(): void {
   globalShortcut.register("CommandOrControl+F4", () => {
     mainWindow?.removeAllListeners("close")
     mainWindow?.close()
+    offscreenWebContentsWindow?.close()
   })
 
   // Emitted when the main window is closed. 
@@ -302,6 +304,72 @@ function createAboutModelWindow(): void {
   })
 }
 
+// Disable hardware acceleration for the app (it turns faster non-3D webContents loading, including offscreen ones)
+// Create a https://tv.gab.com not shown window and load its webContents offscreen on a thread separated from this window's thread
+// Get bitmaps out of the offscreen dynamic webContents and save to the temp folder as png files, then send a message 
+// for the mainWindow renderer process to update gabTVImg img element based on the last saved png screenshot of the offscreen window webContents
+app.disableHardwareAcceleration()
+function createOffscreenWebContentsWindow(): void{
+  offscreenWebContentsWindow = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      offscreen: true
+    }
+  })
+
+  // Emitted when the offscreenWebContentsWindow is closed.
+  offscreenWebContentsWindow.on("closed", () => {
+    offscreenWebContentsWindow = null
+  })
+
+  // load the url https://tv.gab.com/ on the offscreenWebContentsWindow
+  offscreenWebContentsWindow.loadURL("https://tv.gab.com/")
+
+  // set a listener to the paint event which writes the dirty painted image to png temp files
+  // delete temp folder content when number of files reach a maximum, as set below
+  offscreenWebContentsWindow!.webContents.on("paint", (_event: Event, _dirty: Electron.Rectangle, image: Electron.NativeImage) => {
+    const tempFolder = path.join("app", "temp")
+    if (!fs.existsSync(tempFolder)){
+      fs.mkdirSync(tempFolder);
+    }
+    deleteFolderFiles(tempFolder, 15) //delete temp folder content when a maximum of 15 screenshots is reached
+    const date = new Date()
+    const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
+    const screenshotPathMain = path.join(tempFolder, "lastOffscreenShot"+dateString+".png")
+    const screenshotPathRenderer = path.join("temp", "lastOffscreenShot"+dateString+".png")
+    const data = image.toPNG()
+    if(data){
+      fs.writeFileSync(screenshotPathMain, data) //save temp screenshot to png file
+      mainWindow?.webContents.send("updateGabTVImg", screenshotPathRenderer) //load png file as the mainWindow gabTVImg src
+    }
+  })
+
+  function deleteFolderFiles(folderPath: string, maxNumberOfFiles: number){
+    fs.readdir(folderPath, (error: Error, files: any) => {
+      if(error){
+        throw error
+      }
+      if(files.length === maxNumberOfFiles){
+        for(const file of files){
+          fs.unlink(path.join(folderPath, file), (error: Error) => {
+            if(error){
+              throw error
+            }
+          })
+        }
+      }
+    })
+  }
+
+  //set an interval for reloading the offscreen window webContents in order to take the next screenshot
+  setInterval(() => {
+    offscreenWebContentsWindow?.reload()
+  }, 15000);
+
+  // set the framerate to 60 offscreen painted images per second
+  offscreenWebContentsWindow.webContents.setFrameRate(60)
+}
+
 // ******************************************************************************************
 // app event listeners setting:
 // ******************************************************************************************
@@ -313,6 +381,7 @@ app.on('ready', function() {
   primaryDisplay = screen.getPrimaryDisplay()
   createMainWindow()
   createAboutModelWindow()
+  createOffscreenWebContentsWindow()
 })
 
 // Quit when all windows are closed. 
@@ -378,7 +447,7 @@ ipcMain.on("printToPDFFromIndex", (event: IpcMainEvent, ratesResultObject: {last
       const date = new Date()
       const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
       const pdfPath = path.join(app.getPath("desktop"), "rate-results-"+dateString+".pdf")
-      fs.writeFile(pdfPath, data, (error:Error) => {
+      fs.writeFile(pdfPath, data, (error: Error) => {
         if(error){
           throw error
         } else{
@@ -411,7 +480,7 @@ ipcMain.on("saveScreenCapture", (event: IpcMainEvent, fileBuffer: Buffer) => {
   const date = new Date()
   const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
   const filePath = path.join(app.getPath("desktop"), "exchangeRate-"+dateString+".png")
-  fs.writeFile(filePath, fileBuffer, (error:Error) => {
+  fs.writeFile(filePath, fileBuffer, (error: Error) => {
     if(error){
       event.returnValue = null
       new Notification({
