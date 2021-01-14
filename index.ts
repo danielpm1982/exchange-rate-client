@@ -99,8 +99,11 @@ function createMainWindow(): void {
     resizable: true,
     alwaysOnTop: false,
     show: false,
-    webPreferences: {
+    webPreferences: { // NOT SAFE for accessing external resources
       nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: false,
+      experimentalFeatures: false,
       session: customSessionPart1
     }
   })
@@ -131,11 +134,12 @@ function createMainWindow(): void {
       movable: true,
       alwaysOnTop: true,
       show: false,
-      webPreferences: {
+      webPreferences: { // SAFE for accessing external resources
         nodeIntegration: false,
         contextIsolation: true,
         enableRemoteModule: false,
         experimentalFeatures: false,
+        preload: path.join(__dirname, "app/newWindowPreload.js"),
         zoomFactor: 1
       }
     })
@@ -271,8 +275,11 @@ function createAboutModelWindow(): void {
     movable: true,
     alwaysOnTop: true,
     show: false,
-    webPreferences: {
-      nodeIntegration: true
+    webPreferences: { // NOT SAFE for accessing external resources
+      nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: false,
+      experimentalFeatures: false,
     }
   })
   

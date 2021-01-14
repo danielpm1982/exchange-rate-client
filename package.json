@@ -14,9 +14,9 @@
     "package-linux": "electron-packager . exchange-rate-client-v1.0.0-app --overwrite --asar=true --platform=linux --arch=x64 --icon=app/icon/iconLinux.png --prune=true --out=release-builds",
     "tsc-initiate-project": "./node_modules/.bin/tsc --init",
     "tsc-compilate-project": "./node_modules/.bin/tsc ./*.ts ./app/*.ts",
-    "tsc-compilate-project-win": "tsc index.ts app\\index.ts app\\ConversionRatesInterface.ts app\\conversionRatesKeys.ts app\\about.ts app\\indexPrint.ts app\\printOptions.ts",
+    "tsc-compilate-project-win": "tsc index.ts app\\index.ts app\\ConversionRatesInterface.ts app\\conversionRatesKeys.ts app\\about.ts app\\indexPrint.ts app\\printOptions.ts app\\newWindowPreload.ts",
     "tsc-uncompilate-project": "rm ./*.js ./app/*.js",
-    "tsc-uncompilate-project-win": "del index.js app\\index.js app\\ConversionRatesInterface.js app\\conversionRatesKeys.js app\\about.js app\\indexPrint.js app\\printOptions.js"
+    "tsc-uncompilate-project-win": "del index.js app\\index.js app\\ConversionRatesInterface.js app\\conversionRatesKeys.js app\\about.js app\\indexPrint.js app\\printOptions.js app\\newWindowPreload.js"
   },
   "repository": {
     "type": "git",
