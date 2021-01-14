@@ -42,6 +42,16 @@ const clipboardDiv: HTMLDivElement = document.getElementById("clipboardDiv") as 
 const clipboardImg: HTMLImageElement = document.getElementById("clipboard") as HTMLImageElement
 let gabTvImg: HTMLImageElement = document.getElementById("gabTV") as HTMLImageElement
 
+let isOnline: boolean = navigator.onLine
+window.addEventListener("online", (_event: Event) => {
+    isOnline = true
+    alert("You are now ONLINE !")
+})
+window.addEventListener("offline", (_event: Event) => {
+    isOnline = false
+    alert("You are now OFFLINE !\n\nThis app can't work properly OFFLINE.\n\nPlease turn on your network in order to use this app !")
+})
+
 function setCurrencyCode(): boolean{
     const inputValue = currencyCodeSelect.value
     const inputIndex = currencyCodeSelect.selectedIndex
@@ -54,18 +64,22 @@ function setCurrencyCode(): boolean{
     }
 }
 function getCurrencyExchangeRates(currencyCode:string): void{
-    axios.get(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
-    .then(response => {
-        if(response.status == 200){
-            console.log(response)
-            lastUpdated = response.data.time_last_update_utc
-            ratesResult = response.data.conversion_rates
-            setTextAreaResult( lastUpdated, ratesResult )
-        }
-    })
-    .catch(error => {
-        alert('Can\'t show result ! Please, try again later !\n\n'+error)
-    })
+    if(isOnline){
+        axios.get(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
+        .then(response => {
+            if(response.status == 200){
+                console.log(response)
+                lastUpdated = response.data.time_last_update_utc
+                ratesResult = response.data.conversion_rates
+                setTextAreaResult( lastUpdated, ratesResult )
+            }
+        })
+        .catch(error => {
+            alert('Can\'t show result ! Please, try again later !\n\n'+error)
+        })
+    } else{
+        alert("You are currently OFFLINE !\n\nThis app can't work properly OFFLINE.\n\nPlease turn on your network in order to use this app !'")
+    }
 }
 function setTextAreaResult(timeLastUpdate: string | null, conversion_rates: ConversionRatesInterface | null){
     if(timeLastUpdate && conversion_rates){
@@ -362,7 +376,11 @@ clipboardDiv.onpointerout = function(){
 }
 ipcRenderer.on("updateGabTVImg", (_event: IpcRendererEvent, srcPath: string) => {
     const temp: HTMLImageElement = document.createElement("img")
-    temp.src = srcPath
+    if(isOnline){
+        temp.src = srcPath
+    } else{
+        temp.src = "img/gabTV.png"
+    }
     temp.alt = "gabTV"
     temp.title = "go to Gab TV"
     temp.style.width = "100%"
@@ -377,4 +395,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currencyCodeSelect.options.add(option)
     })
     setTheme("blackTheme") // dark theme as default, can be toggled to light theme by the user
+    if(!isOnline){
+        alert("You are currently OFFLINE !\n\nThis app can't work properly OFFLINE.\n\nPlease turn on your network in order to use this app !'")
+    }
 })
