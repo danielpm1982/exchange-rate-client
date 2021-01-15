@@ -17,6 +17,17 @@ let primaryDisplay: Display
 let offscreenWebContentsWindow: Electron.BrowserWindow | null
 
 // ******************************************************************************************
+// Set process.env.NODE_ENV to 'development' if start flag is '--dev', or to 'production'
+// if not. This should be useful for manipulating unpacked files paths on production x 
+// development environments. See offscreenWebContentsWindow paint eventHandler below
+// ******************************************************************************************
+if(process.argv[2] === "--dev"){
+  process.env.NODE_ENV = "development"
+} else{
+  process.env.NODE_ENV = "production"
+}
+
+// ******************************************************************************************
 // BrowserWindow instances creation and setting:
 // ******************************************************************************************
 
@@ -139,7 +150,7 @@ function createMainWindow(): void {
         contextIsolation: true,
         enableRemoteModule: false,
         experimentalFeatures: false,
-        preload: path.join(__dirname, "app/newWindowPreload.js"),
+        preload: path.join(app.getAppPath(), "app/newWindowPreload.js"),
         zoomFactor: 1
       }
     })
@@ -223,7 +234,7 @@ function createMainWindow(): void {
   mainWindow.webContents.on('context-menu', (_event: Event) => {
     menu.popup()
   })
-  const pathTotrayIcon = path.join(__dirname, "app", "icon", "iconLinux.png") as string
+  const pathTotrayIcon = path.join(app.getAppPath(), "app", "icon", "iconLinux.png") as string
   const trayIconNativeImage = nativeImage.createFromPath(pathTotrayIcon)
   // tray = new Tray(pathTotrayIcon) //or
   tray = new Tray(trayIconNativeImage)
@@ -310,7 +321,6 @@ function createAboutModelWindow(): void {
     aboutModalWindow = null
   })
 }
-
 // Disable hardware acceleration for the app (it turns faster non-3D webContents loading, including offscreen ones)
 // Create a https://tv.gab.com not shown window and load its webContents offscreen on a thread separated from this window's thread
 // Get bitmaps out of the offscreen dynamic webContents and save to the temp folder as png files, then send a message 
@@ -332,22 +342,39 @@ function createOffscreenWebContentsWindow(): void{
   // load the url https://tv.gab.com/ on the offscreenWebContentsWindow
   offscreenWebContentsWindow.loadURL("https://tv.gab.com/")
 
-  // set a listener to the paint event which writes the dirty painted image to png temp files
-  // delete temp folder content when number of files reach a maximum, as set below
+  // Set a listener to the paint event which writes the dirty painted image to png temp files
+  // at the temp folder.
+  // Create a temp folder if it doesn't already exist or if it has been deleted during execution.
+  // The dynamically created temp path is different, depending on if the NODE_ENV is development 
+  // or production.
+  // If on production, use process.cwd to get the actual app root folder, otherwise resource asar
+  // file will be got instead (if using app.getAppPath() or __dirname).
+  // If on development, the root folder is always returned fine, as there's no packaging yet or 
+  // any change on the file / folder structure
+  // For the other resources, already packed into the asar file, app.getAppPath() or __dirname 
+  // work fine, but not for resources created AFTER packaging and not packed inside the asar file.
+  // Not packed resources should be manipulated separately from the asar file, at a temp folder
+  // inside the app root folder, for instance, as done here.
+  // Delete temp folder content when the number of files reach a maximum, as set below.
   offscreenWebContentsWindow!.webContents.on("paint", (_event: Event, _dirty: Electron.Rectangle, image: Electron.NativeImage) => {
-    const tempFolder = path.join("app", "temp")
+    let tempFolder
+    if(process.env.NODE_ENV === 'development'){
+      tempFolder = path.join(app.getAppPath(), "app", "temp") //or
+      // tempFolder = path.join(__dirname, "app", "temp")
+    } else if(process.env.NODE_ENV === 'production' ){
+      tempFolder = path.join(process.cwd(), "temp")
+    }
     if (!fs.existsSync(tempFolder)){
       fs.mkdirSync(tempFolder);
     }
     deleteFolderFiles(tempFolder, 15) //delete temp folder content when a maximum of 15 screenshots is reached
     const date = new Date()
     const dateString = date.toDateString()+" "+date.getHours()+"h "+date.getMinutes()+"m "+date.getSeconds()+"s"
-    const screenshotPathMain = path.join(tempFolder, "lastOffscreenShot"+dateString+".png")
-    const screenshotPathRenderer = path.join("temp", "lastOffscreenShot"+dateString+".png")
+    const screenshotAbsolutePath = path.join(tempFolder, "lastOffscreenShot"+dateString+".png")
     const data = image.toPNG()
     if(data){
-      fs.writeFileSync(screenshotPathMain, data) //save temp screenshot to png file
-      mainWindow?.webContents.send("updateGabTVImg", screenshotPathRenderer) //load png file as the mainWindow gabTVImg src
+      fs.writeFileSync(screenshotAbsolutePath, data) //save temp screenshot to png file
+      mainWindow?.webContents.send("updateGabTVImg", screenshotAbsolutePath) //load png file as the mainWindow gabTVImg src
     }
   })
 
