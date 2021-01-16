@@ -57,6 +57,7 @@ function createMainWindow(): void {
         if (item.isPaused()) {
           console.log('Download is paused')
         } else {
+          mainWindow?.setProgressBar(item.getReceivedBytes()/item.getTotalBytes())
           console.log(`Received bytes: ${item.getReceivedBytes()}`)
         }
       }
@@ -74,6 +75,8 @@ function createMainWindow(): void {
           buttons: ["OK"],
           title: state.charAt(0).toUpperCase()+state.slice(1),
           message: 'Download successfull ! File downloaded to path\n'+pathToSave
+        }).then(() => {
+          mainWindow?.setProgressBar(-1)
         })
         shell.openPath(pathToSave)
       } else {
@@ -113,7 +116,7 @@ function createMainWindow(): void {
     webPreferences: { // NOT SAFE for accessing external resources
       nodeIntegration: true,
       contextIsolation: false,
-      enableRemoteModule: false,
+      enableRemoteModule: true,
       experimentalFeatures: false,
       session: customSessionPart1
     }

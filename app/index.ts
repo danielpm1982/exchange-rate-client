@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer, shell, clipboard } from 'electron'
+import { BrowserWindowProxy, ipcRenderer, webFrame, desktopCapturer, shell, clipboard, remote } from 'electron'
 import { IpcRendererEvent } from 'electron/main'
 import ConversionRatesInterface from './ConversionRatesInterface'
 import conversionRatesKeys from './conversionRatesKeys'
@@ -65,8 +65,19 @@ function setCurrencyCode(): boolean{
 }
 function getCurrencyExchangeRates(currencyCode:string): void{
     if(isOnline){
+        const win = remote.BrowserWindow.getFocusedWindow()
+        win?.setProgressBar(0)
+        let i = 0
+        const interval = setInterval(() => {
+            if(i<1){
+                i += 0.05
+                win?.setProgressBar(i)
+            }
+        },50)
         axios.get(`https://v6.exchangerate-api.com/v6/${apiKey}/latest/${currencyCode}`)
         .then(response => {
+            clearInterval(interval)
+            win?.setProgressBar(-1)
             if(response.status == 200){
                 console.log(response)
                 lastUpdated = response.data.time_last_update_utc
